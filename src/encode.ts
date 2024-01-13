@@ -504,7 +504,7 @@ export default function doEncode(
   // command = format.postCommandModifier(command, region, startTime, endTime)
 
   mp.msg.info("Encoding to", out_path);
-  mp.msg.verbose("Command line:", command.join(" "));
+  mp.msg.info("Command line:", command.join(" "));
 
   if (options.run_detached) {
     message("Started encode, process was detached.");

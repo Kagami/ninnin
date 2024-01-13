@@ -2,9 +2,12 @@
   "name": "ninnin",
   "version": "0.0.0",
   "private": true,
+  "type": "module",
   "description": "mpv-based video encoder",
   "scripts": {
-    "build": "rm -rf build ninnin.js && tsc && esbuild build/index.js --bundle --outfile=ninnin.js --target=es5"
+    "build": "rm -rf build ninnin.js && tsc && esbuild build/index.js --bundle --outfile=ninnin.js --target=es5",
+    "start": "esbuild build/index.js --bundle --outfile=ninnin.js --target=es5 --watch=forever & trap 'kill $!' SIGINT && tsc --watch",
+    "test": "node --test --import=./test/register.js test/**/*.spec.*"
   },
   "repository": {
     "type": "git",
@@ -25,8 +28,9 @@
     "url": "https://github.com/Kagami/ninnin/issues"
   },
   "homepage": "https://github.com/Kagami/ninnin#readme",
-  "dependencies": {},
   "devDependencies": {
+    "@swc-node/register": "^1.6.8",
+    "@types/node": "^20.11.0",
     "esbuild": "^0.19.11",
     "typescript": "^5.3.3"
   }

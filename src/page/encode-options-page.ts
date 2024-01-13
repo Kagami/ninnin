@@ -168,7 +168,6 @@ class EncOption {
         break;
       }
     }
-    throw new Error("Invalid option type");
   }
 
   getDisplayValue() {

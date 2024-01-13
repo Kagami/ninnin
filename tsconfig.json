@@ -1,10 +1,13 @@
 {
   "compilerOptions": {
     "outDir": "build",
+    "skipLibCheck": true,
+    // "noEmitOnError": true,
 
     "target": "ES5",
     "module": "ESNext",
     "lib": ["ES5"],
+    "types": [],
     // "moduleResolution": "node",
     // "allowSyntheticDefaultImports": true,
     // "esModuleInterop": true,
@@ -16,5 +19,5 @@
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true
   },
-  "files": ["src/mp.d.ts", "src/index.ts"]
+  "include": ["src/**/*"]
 }

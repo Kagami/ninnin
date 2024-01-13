@@ -133,9 +133,9 @@ function expand_properties(text: string, magic = "$") {
 }
 
 // FIXME: port
-function lua_os_date(_format: string) {
-  return "unknown";
-}
+// function lua_os_date(_format: string) {
+//   throw new Error("not implemented");
+// }
 
 const REPLACE_FIRST: [RegExp, string][] = [
   [/%mp/g, "%mH.%mM.%mS"],
@@ -201,7 +201,7 @@ export function format_filename(
   }
 
   if (mp.get_property_bool("demuxer-via-network", false)) {
-    filename = filename.replace(/%X{([^}]*)}/g, "$1");
+    filename = filename.replace(/%X\{([^}]*)\}/g, "$1");
     filename = filename.replace(/%x/g, "");
   } else {
     const f = mp.get_property("filename", "");
@@ -209,22 +209,23 @@ export function format_filename(
     if (endsWith(x, f)) {
       x = x.slice(0, -f.length);
     }
-    filename = filename.replace(/%X{[^}]*}/g, x);
+    filename = filename.replace(/%X\{[^}]*\}/g, x);
     filename = filename.replace(/%x/g, x);
   }
 
   filename = expand_properties(filename, "%");
 
   // Time expansion
-  const formats = matchAll(
-    filename,
-    /%t([aAbBcCdDeFgGhHIjmMnprRStTuUVwWxXyYzZ])/g
-  );
-  for (const match of formats) {
-    const format = match[1];
-    // XXX: gsub in Lua, but single replace should be enough?
-    filename = filename.replace("%t" + format, lua_os_date("%" + format));
-  }
+  // FIXME: SyntaxError: regular expression: too many character class ranges
+  // const formats = matchAll(
+  //   filename,
+  //   /%t([aAbBcCdDeFgGhHIjmMnprRStTuUVwWxXyYzZ])/g
+  // );
+  // for (const match of formats) {
+  //   const format = match[1];
+  //   // XXX: gsub in Lua, but single replace should be enough?
+  //   filename = filename.replace("%t" + format, lua_os_date("%" + format));
+  // }
 
   // Remove invalid chars
   // Windows: < > : " / \ | ? *
@@ -257,7 +258,7 @@ export function parse_directory(dir: string) {
 }
 
 // FIXME: is that reliable?
-const is_windows = (mp.utils.getcwd() || "")[0] !== "/";
+export const is_windows = (mp.utils.getcwd() || "")[0] !== "/";
 
 // function get_null_path() {
 //   if (file_exists("/dev/null")) {
@@ -309,6 +310,7 @@ function shell_escape(args: string[]) {
 function lua_io_popen(_command_line: string): any {
   throw new Error("not implemented");
 }
+const isPopenAvailable = false;
 
 export function run_subprocess_popen(command_line: string[]) {
   let command_line_string = shell_escape(command_line);
@@ -326,6 +328,7 @@ export function calculate_scale_factor() {
 }
 
 export function should_display_progress() {
+  if (!isPopenAvailable) return false;
   if (options.display_progress === "auto") {
     return !is_windows;
   }
