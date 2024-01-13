@@ -335,7 +335,7 @@ function fixPathTime(startTime: number, endTime: number) {
 }
 
 // FIXME: remove side-effects from cmd building routine (two pass)
-export function buildCommand(
+function buildCommand(
   region: Region,
   origStartTime: number,
   origEndTime: number
@@ -563,3 +563,5 @@ export default function doEncode(
     }
   }
 }
+
+export const exportedForTesting = { buildCommand };

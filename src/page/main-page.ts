@@ -77,7 +77,7 @@ export default class MainPage extends Page {
     this.setup_text(ass);
     // prettier-ignore
     {
-    ass.append(`${bold('WebM maker')}\\N\\N`);
+    ass.append(`${bold('ninnin encoder')}\\N\\N`);
     ass.append(`${bold('c:')} crop\\N`);
     ass.append(`${bold('1:')} set start time (current is ${seconds_to_time_string(this.startTime)})\\N`);
     ass.append(`${bold('2:')} set end time (current is ${seconds_to_time_string(this.endTime)})\\N`);

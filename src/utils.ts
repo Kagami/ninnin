@@ -3,17 +3,17 @@ import options from "./options";
 import { matchAll, endsWith } from "./polyfills";
 
 function format_d(n: number) {
-  return n + "";
+  return Math.floor(n) + "";
 }
 function format_02d(n: number) {
-  let s = n + "";
+  let s = Math.floor(n) + "";
   if (s.length === 1) {
     s = "0" + s;
   }
   return s;
 }
 function format_03d(n: number) {
-  let s = n + "";
+  let s = Math.floor(n) + "";
   if (s.length === 1) {
     s = "00" + s;
   } else if (s.length === 2) {

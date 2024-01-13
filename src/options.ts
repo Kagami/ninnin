@@ -10,7 +10,7 @@ const options = {
   // and [[/home/john]] (on Unix-like systems eg. Linux).
   // The [[]] delimiter is not needed when using from a configuration file
   // in the script-opts folder.
-  output_directory: "",
+  output_directory: "~/Downloads", // FIXME: does it work everywhere?
   run_detached: false,
   // Template string for the output file
   // %f - Filename, with extension

@@ -5,24 +5,27 @@ import "./mock";
 
 import { format_filename } from "../src/utils";
 import { formats } from "../src/formats";
-import { buildCommand } from "../src/encode";
+import { exportedForTesting as encodeTesting } from "../src/encode";
 import { Region } from "../src/video-to-screen";
 
+const START_TIME = 1.41708333333333;
+const END_TIME = 3.0427083333333;
+
 test("format_filename", () => {
-  const filename = format_filename(1, 2, formats.avc);
+  const filename = format_filename(START_TIME, END_TIME, formats.avc);
   // %F-[%s-%e]%M
-  deepEqual(filename, "video-[00.01.000-00.02.000]-audio.mp4");
+  deepEqual(filename, "video-[00.01.417-00.03.042]-audio.mp4");
 });
 
 test("buildCommand", () => {
-  const cmdRes = buildCommand(new Region(), 1, 2);
+  const cmdRes = encodeTesting.buildCommand(new Region(), START_TIME, END_TIME);
   deepEqual(!!cmdRes, true);
 
   deepEqual(cmdRes.command, [
     "mpv",
     "/home/user/video.mp4",
-    "--start=0:00:01.000",
-    "--end=0:00:02.000",
+    "--start=0:00:01.417",
+    "--end=0:00:03.042",
     "--loop-file=no",
     "--no-pause",
     "--ovc=libx264",
@@ -40,6 +43,6 @@ test("buildCommand", () => {
     "--ovcopts-add=threads=4",
     "--ovcopts-add=b=0",
     "--ovcopts-add=crf=23",
-    "--o=/home/user/video-[00.01.000-00.02.000]-audio.mp4",
+    "--o=/home/user/video-[00.01.417-00.03.042]-audio.mp4",
   ]);
 });
