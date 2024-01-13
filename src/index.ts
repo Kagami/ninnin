@@ -8,7 +8,7 @@ monitor_dimensions();
 const mainPage = new MainPage();
 mp.add_key_binding(
   options.keybind,
-  "display-webm-encoder",
+  "display-ninnin",
   mainPage.show.bind(mainPage),
   {
     repeatable: false,
@@ -16,5 +16,5 @@ mp.add_key_binding(
 );
 mp.register_event("file-loaded", mainPage.setupStartAndEndTimes.bind(mainPage));
 
-mp.msg.verbose("Loaded mpv-webm script!");
+mp.msg.verbose("Loaded ninnin script!");
 // emit_event("script-loaded");

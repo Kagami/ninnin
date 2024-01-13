@@ -54,7 +54,7 @@ export function seconds_to_time_string(
     format_02d(Math.floor(seconds) % 60) +
     ret;
   if (full || seconds > 3600) {
-    ret = Math.floor(seconds / 3600) + ret;
+    ret = Math.floor(seconds / 3600) + ":" + ret;
   }
   return ret;
 }
@@ -177,7 +177,7 @@ export function format_filename(
     [
       /%M/g,
       mp.get_property_native("aid") &&
-      !mp.get_property_native("mute") &&
+      !mp.get_property_bool("mute") &&
       hasAudioCodec
         ? "-audio"
         : "",

@@ -15,14 +15,12 @@ import {
 } from "./utils";
 import EncodeWithProgress from "./encode-with-progress";
 import { ObjectEntries } from "./polyfills";
-
-// FIXME: track type
-type Track = any;
+import type { MP } from "./mpv";
 
 interface ActiveTracks {
-  video: Track[];
-  audio: Track[];
-  sub: Track[];
+  video: MP.Track[];
+  audio: MP.Track[];
+  sub: MP.Track[];
 }
 
 function get_active_tracks() {
@@ -31,15 +29,15 @@ function get_active_tracks() {
     audio: !mp.get_property_bool("mute"),
     sub: mp.get_property_bool("sub-visibility"),
   };
-  type AKey = keyof typeof accepted;
   const active: ActiveTracks = {
     video: [],
     audio: [],
     sub: [],
   };
-  for (const track of mp.get_property_native("track-list")) {
-    if (track.selected && accepted[track.type as AKey]) {
-      active[track.type as AKey].push(track);
+  for (const track of mp.get_property_native("track-list") as MP.Track[]) {
+    const trType = track.type as keyof typeof accepted;
+    if (track.selected && accepted[trType]) {
+      active[trType].push(track);
     }
   }
   return active;
@@ -61,36 +59,35 @@ function filter_tracks_supported_by_format(
   return supported;
 }
 
-function append_track(out: string[], track: Track) {
+function append_track(out: string[], track: MP.Track) {
   const external_flag = {
     audio: "audio-file",
     sub: "sub-file",
   };
-  type EKey = keyof typeof external_flag;
   const internal_flag = {
     video: "vid",
     audio: "aid",
     sub: "sid",
   };
 
-  const trtype = track.type as EKey;
   // The external tracks rely on the behavior that, when using
   // audio-file/sub-file only once, the track is selected by default.
   // Also, for some reason, ytdl-hook produces external tracks with absurdly long
   // filenames; this breaks our command line. Try to keep it sane, under 2048 characters.
+  const trType = track.type as keyof typeof external_flag;
   if (track.external && track["external-filename"].length <= 2048) {
-    out.push(`--${external_flag[trtype]}=${track["external-filename"]}`);
+    out.push(`--${external_flag[trType]}=${track["external-filename"]}`);
   } else {
-    out.push(`--${internal_flag[trtype]}=${track.id}`);
+    out.push(`--${internal_flag[trType]}=${track.id}`);
   }
 }
 
-function append_audio_tracks(out: string[], tracks: Track[]) {
+function append_audio_tracks(out: string[], tracks: MP.Track[]) {
   // Some additional logic is needed for audio tracks because it seems
   // multiple active audio tracks are a thing? We probably only can reliably
   // use internal tracks for this so, well, we keep track of them and see if
   // more than one is active.
-  const internal_tracks: Track[] = [];
+  const internal_tracks: MP.Track[] = [];
 
   for (const track of tracks) {
     if (track.external) {
@@ -134,9 +131,9 @@ function get_fps_filters() {
 }
 
 function get_contrast_brightness_and_saturation_filters() {
-  const mpv_brightness = mp.get_property("brightness");
-  const mpv_contrast = mp.get_property("contrast");
-  const mpv_saturation = mp.get_property("saturation");
+  const mpv_brightness = mp.get_property_native("brightness");
+  const mpv_contrast = mp.get_property_native("contrast");
+  const mpv_saturation = mp.get_property_native("saturation");
 
   if (mpv_brightness === 0 && mpv_contrast === 0 && mpv_saturation === 0) {
     // Default values, no need to change anything.
@@ -189,6 +186,7 @@ function append_property(
 // }
 
 // Get the current playback options, trying to match how the video is being played.
+// TODO: don't pass default values?
 function get_playback_options() {
   const ret: string[] = [];
   append_property(ret, "sub-ass-override");
@@ -307,15 +305,17 @@ function calculate_bitrate(
   return [video_bitrate, audio_bitrate];
 }
 
-function find_path(startTime: number, endTime: number) {
-  const path = mp.get_property("path") as string;
+// FIXME: remove side-effects from cmd building routine
+function fixPathTime(startTime: number, endTime: number) {
+  const path: string = mp.get_property("path");
   if (!path) return;
 
   const is_stream = !file_exists(path);
   let is_temporary = false;
   if (is_stream) {
     if (mp.get_property("file-format") === "hls") {
-      // TODO: does it work?
+      // FIXME: does it work?
+      // FIXME: doesn't need in case of HLS VOD?
       // Attempt to dump the stream cache into a temporary file
       const path = mp.utils.join_path(parse_directory("~"), "cache_dump.ts");
       mp.command_native([
@@ -334,23 +334,23 @@ function find_path(startTime: number, endTime: number) {
   return { path, is_stream, is_temporary, startTime, endTime };
 }
 
-export default function doEncode(
+// FIXME: remove side-effects from cmd building routine (two pass)
+export function buildCommand(
   region: Region,
-  originalStartTime: number,
-  originalEndTime: number
+  origStartTime: number,
+  origEndTime: number
 ) {
-  const format = formats[options.output_format];
-
-  const res = find_path(originalStartTime, originalEndTime);
-  if (!res) {
+  const pathRes = fixPathTime(origStartTime, origEndTime);
+  if (!pathRes) {
     message("No file is being played");
     return;
   }
-  const { path, is_stream, is_temporary, startTime, endTime } = res;
+  const { path, is_stream, is_temporary, startTime, endTime } = pathRes;
 
   const command = [
     "mpv",
     path,
+    // FIXME: shift by 1ms to be frame exact
     "--start=" + seconds_to_time_string(startTime, false, true),
     "--end=" + seconds_to_time_string(endTime, false, true),
     // When loop-file=inf, the encode won't end. Set this to override.
@@ -359,6 +359,7 @@ export default function doEncode(
     "--no-pause",
   ];
 
+  const format = formats[options.output_format];
   command.push(...format.getCodecFlags());
 
   const active_tracks = get_active_tracks();
@@ -463,17 +464,46 @@ export default function doEncode(
   }
 
   const formatted_filename = format_filename(
-    originalStartTime,
-    originalEndTime,
+    origStartTime,
+    origEndTime,
     format
   );
   const out_path = mp.utils.join_path(dir, formatted_filename);
   command.push(`--o=${out_path}`);
 
+  return {
+    command,
+    is_stream,
+    is_temporary,
+    path,
+    out_path,
+    startTime,
+    endTime,
+  };
+}
+
+export default function doEncode(
+  region: Region,
+  origStartTime: number,
+  origEndTime: number
+) {
+  const cmdRes = buildCommand(region, origStartTime, origEndTime);
+  if (!cmdRes) return;
+  const {
+    command,
+    is_stream,
+    is_temporary,
+    path,
+    out_path,
+    startTime,
+    endTime,
+  } = cmdRes;
+
   // emit_event("encode-started");
 
   // Do the first pass now, as it won't require the output path. I don't think this works on streams.
   // Also this will ignore run_detached, at least for the first pass.
+  const format = formats[options.output_format];
   if (options.twopass && format.supportsTwopass && !is_stream) {
     // copy the commandline
     const first_pass_cmdline = command.slice();

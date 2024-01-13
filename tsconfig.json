@@ -3,6 +3,7 @@
     "outDir": "build",
     "skipLibCheck": true,
     // "noEmitOnError": true,
+    "sourceMap": true,
 
     "target": "ES5",
     "module": "ESNext",
