@@ -398,13 +398,6 @@ function buildCommand(
     "--no-pause",
   ];
 
-  if (hasVideoTrack) {
-    command.push(...format.getVideoFlags());
-  }
-  if (hasAudioTrack) {
-    command.push(...format.getAudioFlags());
-  }
-
   const duration = endTime - startTime;
   const [vbitrate, abitrate] = calcBitrate(
     hasVideoTrack,
@@ -412,6 +405,7 @@ function buildCommand(
     duration
   );
   if (hasVideoTrack) {
+    command.push(...format.getVideoFlags());
     if (vbitrate) {
       command.push(`--ovcopts-add=b=${vbitrate}k`);
     } else {
@@ -420,11 +414,12 @@ function buildCommand(
       // other encoding modes, depending on the codec.
       // command.push(`--${type}opts-add=b=0`); FIXME: libvpx/libaom
       if (options.crf >= 0) {
-        command.push(`--ovcopts-add=crf=${options.crf}`);
+        command.push(...format.getVideoQualityFlags());
       }
     }
   }
   if (hasAudioTrack) {
+    command.push(...format.getAudioFlags());
     command.push(`--oacopts-add=b=${abitrate}k`);
     // FIXME: do we need to downmix to stereo in case of e.g. 5.1 source?
     // command.push("--audio-channels=2");

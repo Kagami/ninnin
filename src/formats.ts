@@ -30,13 +30,17 @@ export class Format {
     return [] as string[];
   }
 
-  // The codec flags
+  // Video codec flags
   getVideoFlags() {
-    if (!this.videoCodec) return [];
     return [`--ovc=${this.videoCodec}`];
   }
+  getVideoQualityFlags() {
+    // FIXME: is it ok to use global options here?
+    return [`--ovcopts-add=crf=${options.crf}`];
+  }
+
+  // Audio codec flags
   getAudioFlags() {
-    if (!this.audioCodec) return [];
     return [`--oac=${this.audioCodec}`];
   }
 
@@ -56,8 +60,15 @@ class AVC extends Format {
   public audioCodec = "aac";
   public outputExtension = "mp4";
 
-  getDisplayName() {
+  getDisplayName(): string {
     return getCaps().has_aac_at ? "x264/aac_at" : "x264/aac";
+  }
+
+  getVideoFlags(): string[] {
+    return [
+      `--ovc=${this.videoCodec}`,
+      `--ovcopts-add=preset=${options.preset}`,
+    ];
   }
 
   getAudioFlags() {
@@ -74,7 +85,17 @@ class AVC extends Format {
   }
 }
 
-export const formats: [string, Format][] = [["avc", new AVC()]];
+class HEVC extends AVC {
+  public videoCodec = "libx265";
+  getDisplayName() {
+    return getCaps().has_aac_at ? "x265/aac_at" : "x265/aac";
+  }
+}
+
+export const formats: [string, Format][] = [
+  ["avc", new AVC()],
+  ["hevc", new HEVC()],
+];
 export const formatByName = ObjectFromEntries(formats);
 
 export function getCurrentFormat() {

@@ -41,6 +41,18 @@ export default class EncodeOptionsPage extends Page {
         "0": "constant quality",
       },
     };
+    const presetOpts: ListOpts<string> = [
+      ["ultrafast"],
+      ["superfast"],
+      ["veryfast"],
+      ["faster"],
+      ["fast"],
+      ["medium"],
+      ["slow"],
+      ["slower"],
+      ["veryslow"],
+      ["placebo"],
+    ];
     const crfOpts = {
       step: 1,
       min: -1,
@@ -78,9 +90,10 @@ export default class EncodeOptionsPage extends Page {
     // TODO: can we enforce same type for options[key] and EncOption.value?
     // prettier-ignore
     this.options = [
-      ["output_format", new EncOptionList("Format", options.output_format, formatOpts)],
+      ["output_format", new EncOptionList("Codec", options.output_format, formatOpts)],
       ["scale_height", new EncOptionList("Height", options.scale_height, scaleHeightOpts)],
       ["target_filesize", new EncOptionInt("File size", options.target_filesize, filesizeOpts)],
+      ["preset", new EncOptionList("Preset", options.preset, presetOpts)],
       ["crf", new EncOptionInt("Video quality", options.crf, crfOpts)],
       ["audio_bitrate", new EncOptionInt("Audio bitrate", options.audio_bitrate, abOpts)],
       ["fps", new EncOptionList("FPS", options.fps, fpsOpts)],

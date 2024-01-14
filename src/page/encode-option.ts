@@ -22,6 +22,7 @@ export class EncOption<T, O> {
   protected opts: O;
   protected displayText: string;
   protected visibleCheckFn: (() => boolean) | null;
+  protected index = 0;
 
   constructor(
     displayText: string,
@@ -66,7 +67,7 @@ export class EncOption<T, O> {
     if (this.hasPrevious()) {
       ass.append("◀ ");
     }
-    ass.append(this.getDisplayValue()!);
+    ass.append(this.getDisplayValue());
     // right arrow unicode
     if (this.hasNext()) {
       ass.append(" ▶");
@@ -140,8 +141,6 @@ export class EncOptionInt extends EncOption<
 export type EncOptionListOpts<V> = ([V] | [V, string])[];
 
 export class EncOptionList<V> extends EncOption<V, EncOptionListOpts<V>> {
-  private index = 0;
-
   hasPrevious() {
     return this.index > 0;
   }

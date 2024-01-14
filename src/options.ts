@@ -16,31 +16,36 @@ const options = {
   // More specifiers are supported, see https://mpv.io/manual/master/#options-screenshot-template
   // Property expansion is supported (with %{} at top level, ${} when nested), see https://mpv.io/manual/master/#property-expansion
   output_template: "%F-[%s-%e]",
+
+  // Sets the output format, from a few predefined ones.
+  output_format: "avc",
   // Scale video to a certain height, keeping the aspect ratio. -1 disables it.
   scale_height: -1,
-  // Change the FPS of the output video, dropping or duplicating frames as needed.
-  // -1 means the FPS will be unchanged from the source.
-  fps: -1,
   // Target filesize, in kB. This will be used to calculate the bitrate
   // used on the encode. If this is set to <= 0, the video bitrate will be set
   // to 0, which might enable constant quality modes, depending on the
   // video codec that's used (VP8 and VP9, for example).
   target_filesize: 0,
-  // In kilobits.
-  audio_bitrate: 192,
-  // Sets the output format, from a few predefined ones.
-  output_format: "avc",
-  // If set, applies the video filters currently used on the playback to the encode.
-  apply_current_filters: true,
-  additional_flags: "",
+  // Preset, applicable to some encoders.
+  preset: "slow",
   // Constant Rate Factor (CRF). The value meaning and limits may change,
   // from codec to codec. Set to -1 to disable.
   crf: 23,
-  // gif dither mode, 0-5 for bayer w/ bayer_scale 0-5, 6 for paletteuse default (sierra2_4a)
-  gif_dither: 2,
+  // Change the FPS of the output video, dropping or duplicating frames as needed.
+  // -1 means the FPS will be unchanged from the source.
+  fps: -1,
+  // If set, applies the video filters currently used on the playback to the encode.
+  apply_current_filters: true,
   // Force square pixels on output video
   // Some players like recent Firefox versions display videos with non-square pixels with wrong aspect ratio
   force_square_pixels: false,
+  // In kilobits.
+  audio_bitrate: 192,
+  // Custom encoding flags.
+  additional_flags: "",
+  // gif dither mode, 0-5 for bayer w/ bayer_scale 0-5, 6 for paletteuse default (sierra2_4a)
+  gif_dither: 2,
+
   // The font size used in the menu. Isn't used for the notifications (started encode, finished encode etc)
   font_size: 28,
   margin: 10,
