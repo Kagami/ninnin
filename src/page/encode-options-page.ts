@@ -21,27 +21,26 @@ export default class EncodeOptionsPage extends Page {
     super();
     this.callback = callback;
 
+    const formatOpts: ListOpts<string> = formats.map((v) => [
+      v[0],
+      v[1].getDisplayName(),
+    ]);
     const scaleHeightOpts: ListOpts<number> = [
-      [-1, "no"],
-      [144],
-      [240],
+      [-1, "source"],
       [360],
       [480],
-      [540],
       [720],
       [1080],
       [1440],
       [2160],
     ];
-
     const filesizeOpts = {
-      step: 250,
+      step: 512,
       min: 0,
       altDisplayNames: {
-        "0": "0 (constant quality)",
+        "0": "constant quality",
       },
     };
-
     const crfOpts = {
       step: 1,
       min: -1,
@@ -49,7 +48,11 @@ export default class EncodeOptionsPage extends Page {
         "-1": "disabled",
       },
     };
-
+    const abOpts = {
+      step: 64,
+      min: 64,
+      max: 320,
+    };
     const fpsOpts: ListOpts<number> = [
       [-1, "source"],
       [15],
@@ -61,11 +64,6 @@ export default class EncodeOptionsPage extends Page {
       [120],
       [240],
     ];
-
-    const formatOpts: ListOpts<string> = formats.map((v) => [
-      v[0],
-      v[1].displayName,
-    ]);
 
     // const gifDitherOpts: ListOpts<number> = [
     //   [0, "bayer_scale 0"],
@@ -80,10 +78,11 @@ export default class EncodeOptionsPage extends Page {
     // TODO: can we enforce same type for options[key] and EncOption.value?
     // prettier-ignore
     this.options = [
-      ["output_format", new EncOptionList("Output Format", options.output_format, formatOpts)],
-      ["scale_height", new EncOptionList("Scale Height", options.scale_height, scaleHeightOpts)],
-      ["target_filesize", new EncOptionInt("Target Filesize", options.target_filesize, filesizeOpts)],
-      ["crf", new EncOptionInt("CRF", options.crf, crfOpts)],
+      ["output_format", new EncOptionList("Format", options.output_format, formatOpts)],
+      ["scale_height", new EncOptionList("Height", options.scale_height, scaleHeightOpts)],
+      ["target_filesize", new EncOptionInt("File size", options.target_filesize, filesizeOpts)],
+      ["crf", new EncOptionInt("Video quality", options.crf, crfOpts)],
+      ["audio_bitrate", new EncOptionInt("Audio bitrate", options.audio_bitrate, abOpts)],
       ["fps", new EncOptionList("FPS", options.fps, fpsOpts)],
       // ["apply_current_filters", new EncOptionBool("Apply Current Video Filters", options.apply_current_filters, null)],
       // ["gif_dither", new EncOptionList("GIF Dither Type", options.gif_dither, gifDitherOpts, () => this.options[0][1].getValue() === "gif")],
@@ -115,6 +114,9 @@ export default class EncodeOptionsPage extends Page {
   }
 
   prevOpt() {
+    if (this.currentOption === 0) {
+      this.currentOption = this.options.length;
+    }
     for (let i = this.currentOption - 1; i >= 0; i--) {
       if (this.options[i][1].optVisible()) {
         this.currentOption = i;
@@ -125,13 +127,16 @@ export default class EncodeOptionsPage extends Page {
   }
 
   nextOpt() {
+    if (this.currentOption === this.options.length - 1) {
+      this.currentOption = -1;
+    }
     for (let i = this.currentOption + 1; i < this.options.length; i++) {
       if (this.options[i][1].optVisible()) {
         this.currentOption = i;
         break;
       }
-      this.draw();
     }
+    this.draw();
   }
 
   confirmOpts() {

@@ -1,9 +1,8 @@
-import { type Format, formatByName } from "./formats";
+import { type Format, getCurrentFormat } from "./formats";
 import type { Region } from "./video-to-screen";
 import options from "./options";
 import {
   bold,
-  file_exists,
   format_filename,
   get_pass_logfile_path,
   message,
@@ -299,19 +298,20 @@ function calcBitrate(
   return [video_bitrate, options.audio_bitrate];
 }
 
-// FIXME: remove side-effects from cmd building routine
-function fixPathTime(startTime: number, endTime: number) {
-  const path: string = mp.get_property("path");
-  if (!path) return;
+function isStream() {
+  return mp.get_property_bool("demuxer-via-network");
+}
 
-  const is_stream = !file_exists(path);
-  let is_temporary = false;
-  /*if (is_stream) {
+// FIXME: remove side-effects from cmd building routine
+function fixLivePathTime(path: string, startTime: number, endTime: number) {
+  let isLive = false;
+  let livePath = path;
+  /*if (isStream()) {
     if (mp.get_property("file-format") === "hls") {
       // FIXME: does it work?
       // FIXME: doesn't need in case of HLS VOD?
       // Attempt to dump the stream cache into a temporary file
-      const path = mp.utils.join_path(parse_directory("~"), "cache_dump.ts");
+      livePath = mp.utils.join_path(parse_directory("~"), "cache_dump.ts");
       mp.command_native([
         "dump_cache",
         seconds_to_time_string(startTime, false, true),
@@ -320,11 +320,33 @@ function fixPathTime(startTime: number, endTime: number) {
       ]);
       endTime = endTime - startTime;
       startTime = 0;
-      is_temporary = true;
+      isLive = true;
     }
   }*/
 
-  return { path, is_stream, is_temporary, startTime, endTime };
+  return { isLive, livePath, startTime, endTime };
+}
+
+// FIXME: don't call get_property for pure functions?
+export function getOutPath(startTime: number, endTime: number) {
+  // save to the directory of the playing video it dir wasn't specified
+  // don't have file path for streams, so saving to HOME in that case
+  let dir = "";
+  if (options.output_directory) {
+    dir = parse_directory(options.output_directory);
+  } else if (isStream()) {
+    dir = parse_directory("~");
+  } else {
+    const path = mp.get_property("path");
+    dir = mp.utils.split_path(path)[0];
+  }
+
+  const formatted_filename = format_filename(
+    startTime,
+    endTime,
+    getCurrentFormat()
+  );
+  return mp.utils.join_path(dir, formatted_filename);
 }
 
 function buildCommand(
@@ -332,14 +354,19 @@ function buildCommand(
   origStartTime: number,
   origEndTime: number
 ) {
-  const pathRes = fixPathTime(origStartTime, origEndTime);
-  if (!pathRes) {
+  const path: string = mp.get_property("path");
+  if (!path) {
     message("No file is being played");
     return;
   }
-  const { path, is_stream, is_temporary, startTime, endTime } = pathRes;
 
-  const format = formatByName[options.output_format];
+  const { isLive, livePath, startTime, endTime } = fixLivePathTime(
+    path,
+    origStartTime,
+    origEndTime
+  );
+
+  const format = getCurrentFormat();
   const active_tracks = get_active_tracks();
   const supported_active_tracks = filter_tracks_supported_by_format(
     active_tracks,
@@ -361,7 +388,7 @@ function buildCommand(
 
   const command = [
     "mpv",
-    path,
+    livePath,
     // FIXME: shift by 1ms to be frame exact
     "--start=" + seconds_to_time_string(startTime, false, true),
     "--end=" + seconds_to_time_string(endTime, false, true),
@@ -444,29 +471,14 @@ function buildCommand(
     command.push(...options.additional_flags.trim().split(/\s+/));
   }
 
-  // save to the directory of the playing video it dir wasn't specified
-  // don't have file path for streams, so saving to HOME in that case
-  let dir = "";
-  if (options.output_directory) {
-    dir = parse_directory(options.output_directory);
-  } else {
-    dir = is_stream ? parse_directory("~") : mp.utils.split_path(path)[0];
-  }
-
-  const formatted_filename = format_filename(
-    origStartTime,
-    origEndTime,
-    format
-  );
-  const out_path = mp.utils.join_path(dir, formatted_filename);
-  command.push(`--o=${out_path}`);
+  const outPath = getOutPath(origStartTime, origEndTime);
+  command.push(`--o=${outPath}`);
 
   return {
     command,
-    is_stream,
-    is_temporary,
-    path,
-    out_path,
+    isLive,
+    livePath,
+    outPath,
     startTime,
     endTime,
   };
@@ -484,15 +496,7 @@ export default function doEncode(
 ) {
   const cmdRes = buildCommand(region, origStartTime, origEndTime);
   if (!cmdRes) return;
-  const {
-    command,
-    // is_stream,
-    is_temporary,
-    path,
-    out_path,
-    startTime,
-    endTime,
-  } = cmdRes;
+  const { command, isLive, livePath, outPath, startTime, endTime } = cmdRes;
 
   // emit_event("encode-started");
 
@@ -501,7 +505,7 @@ export default function doEncode(
   // In case of local file: works
   // In case of youtube URL: works
   // In case of HLS live stream: we dump it to a temporary file, so it works
-  const format = formatByName[options.output_format];
+  const format = getCurrentFormat();
   if (shouldTwoPass(format)) {
     // copy the commandline
     const first_pass_cmdline = command.slice();
@@ -530,10 +534,11 @@ export default function doEncode(
 
   // command = format.postCommandModifier(command, region, startTime, endTime)
 
-  mp.msg.info("Encoding to", out_path);
+  mp.msg.info("Encoding to", outPath);
   mp.msg.info("Command line:", command.join(" "));
 
   if (options.run_detached) {
+    // FIXME: remove?
     message("Started encode, process was detached.");
     mp.utils.subprocess_detached({ args: command });
   } else {
@@ -547,7 +552,7 @@ export default function doEncode(
       res = ewp.startEncode(command);
     }
     if (res) {
-      message(`Encoded successfully! Saved to\\N${bold(out_path)}`);
+      message(`Encoded successfully! Saved to\\N${bold(outPath)}`);
       // emit_event("encode-finished", "success");
     } else {
       message("Encode failed! Check the logs for details.");
@@ -555,9 +560,10 @@ export default function doEncode(
     }
 
     // Clean up pass log file.
-    remove_file(get_pass_logfile_path(out_path));
-    if (is_temporary) {
-      remove_file(path);
+    remove_file(get_pass_logfile_path(outPath));
+    // Clean up dumped stream cache.
+    if (isLive) {
+      remove_file(livePath);
     }
   }
 }

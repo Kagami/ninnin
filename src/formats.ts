@@ -1,13 +1,18 @@
 import { getCaps } from "./caps";
 import { ObjectFromEntries } from "./lib/polyfills";
+import options from "./options";
 
 // A basic format class, which specifies some fields to be set by child classes.
 export class Format {
-  public displayName = "Basic";
+  protected displayName = "";
   public videoCodec = "";
   public audioCodec = "";
   public outputExtension = "";
   public twoPassRequired = false; // libvpx/libaom have better resulting quality with 2-pass
+
+  getDisplayName() {
+    return this.displayName;
+  }
 
   // Filters that should be applied before the transformations we do (crop, scale)
   // Should be a array of ffmpeg filters e.g. {"colormatrix=bt709", "sub"}.
@@ -47,10 +52,13 @@ export class Format {
 }
 
 class AVC extends Format {
-  public displayName = "AVC (H.264/AAC)";
   public videoCodec = "libx264";
   public audioCodec = "aac";
   public outputExtension = "mp4";
+
+  getDisplayName() {
+    return getCaps().has_aac_at ? "x264/aac_at" : "x264/aac";
+  }
 
   getAudioFlags() {
     if (getCaps().has_aac_at) {
@@ -68,3 +76,7 @@ class AVC extends Format {
 
 export const formats: [string, Format][] = [["avc", new AVC()]];
 export const formatByName = ObjectFromEntries(formats);
+
+export function getCurrentFormat() {
+  return formatByName[options.output_format];
+}

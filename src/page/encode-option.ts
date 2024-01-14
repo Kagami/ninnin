@@ -103,14 +103,14 @@ export class EncOptionInt extends EncOption<
   }
 > {
   hasPrevious() {
-    if (this.opts.min) {
+    if (this.opts.min !== undefined) {
       return this.value > this.opts.min;
     } else {
       return true;
     }
   }
   hasNext() {
-    if (this.opts.max) {
+    if (this.opts.max !== undefined) {
       return this.value < this.opts.max;
     } else {
       return true;
@@ -118,13 +118,13 @@ export class EncOptionInt extends EncOption<
   }
   leftKey() {
     this.value -= this.opts.step;
-    if (this.opts.min && this.opts.min > this.value) {
+    if (this.opts.min !== undefined && this.opts.min > this.value) {
       this.value = this.opts.min;
     }
   }
   rightKey() {
     this.value += this.opts.step;
-    if (this.opts.max && this.opts.max < this.value) {
+    if (this.opts.max !== undefined && this.opts.max < this.value) {
       this.value = this.opts.max;
     }
   }
