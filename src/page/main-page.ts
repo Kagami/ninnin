@@ -5,7 +5,7 @@ import EncodeOptionsPage from "./encode-options-page";
 import doEncode from "../encode";
 import { Region } from "../video-to-screen";
 import { bold, message, seconds_to_time_string } from "../utils";
-import AssDraw from "../assdraw";
+import AssDraw from "../lib/assdraw";
 
 export default class MainPage extends Page {
   private startTime = -1;

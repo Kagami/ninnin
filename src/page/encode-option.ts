@@ -1,5 +1,5 @@
-import type AssDraw from "../assdraw";
-import { ArrayEntries } from "../polyfills";
+import type AssDraw from "../lib/assdraw";
+import { ArrayEntries } from "../lib/polyfills";
 import { bold } from "../utils";
 
 // If optType is a "bool" or an "int", @value is the boolean/integer value of the option.

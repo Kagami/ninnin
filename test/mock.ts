@@ -1,18 +1,22 @@
 import * as Path from "node:path";
 
-global.mp = {
+let videoToolboxEnabled = false;
+
+const mp = {
   utils: {
-    getenv: (env) => {
+    getenv(env) {
       if (env === "HOME") {
         return "/home/user";
       }
       throw new Error("getenv " + env);
     },
-    getcwd: () => "/home/user",
-    file_info: (path) => {
+    getcwd() {
+      return "/home/user";
+    },
+    file_info(path) {
       return path === "/home/user/video.mp4" ? {} : null;
     },
-    split_path: (path) => {
+    split_path(path) {
       return [Path.dirname(path), Path.basename(path)];
     },
     join_path(dname, fname) {
@@ -87,6 +91,10 @@ global.mp = {
         return 0;
       case "speed":
         return 1;
+      case "encoder-list":
+        return videoToolboxEnabled
+          ? [{ driver: "hevc_videotoolbox" }, { driver: "aac_at" }]
+          : [];
     }
     throw new Error("get_property_native: " + prop);
   },
@@ -102,3 +110,11 @@ global.mp = {
     throw new Error("get_property_bool: " + prop);
   },
 };
+
+export function enableMock() {
+  global.mp = mp;
+}
+
+export function enableVideoToolbox() {
+  videoToolboxEnabled = true;
+}

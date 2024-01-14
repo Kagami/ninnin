@@ -45,6 +45,18 @@ export function ObjectFromEntries<T>(entries: [string, T][]) {
   return res;
 }
 
+// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/assign
+export function ObjectAssign<T>(target: T, ...sources: Partial<T>[]) {
+  for (const source of sources) {
+    for (const key in source) {
+      if (source.hasOwnProperty(key)) {
+        target[key] = source[key] as any;
+      }
+    }
+  }
+  return target;
+}
+
 // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/entries
 export function ArrayEntries<T>(arr: T[]) {
   const res: [number, T][] = [];

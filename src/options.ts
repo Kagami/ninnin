@@ -27,7 +27,7 @@ const options = {
   // video codec that's used (VP8 and VP9, for example).
   target_filesize: 0,
   // In kilobits.
-  audio_bitrate: 256,
+  audio_bitrate: 192,
   // Sets the output format, from a few predefined ones.
   output_format: "avc",
   // If set, applies the video filters currently used on the playback to the encode.

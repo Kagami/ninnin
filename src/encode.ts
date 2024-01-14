@@ -14,8 +14,8 @@ import {
   should_display_progress,
 } from "./utils";
 import EncodeWithProgress from "./encode-with-progress";
-import { ObjectEntries } from "./polyfills";
-import type { MP } from "./mpv";
+import { ObjectEntries } from "./lib/polyfills";
+import type { MP } from "./lib/mpv";
 
 interface ActiveTracks {
   video: MP.Track[];
@@ -276,30 +276,27 @@ function get_video_encode_flags(format: Format, region: Region) {
   return flags;
 }
 
-function calculate_bitrate(
-  active_tracks: ActiveTracks,
-  format: Format,
-  length: number
+function calcBitrate(
+  hasVideoTrack: boolean,
+  hasAudioTrack: boolean,
+  duration: number
 ) {
-  if (!format.videoCodec) {
-    // Allocate everything to the audio
-    // FIXME: this could be bigger than format allows.
-    // But we don't currently have audio-only formats anyway.
-    return [0, (options.target_filesize * 8) / length];
+  if (!hasVideoTrack) {
+    return [0, options.audio_bitrate];
   }
 
-  let video_kilobits = options.target_filesize * 8;
-  let audio_kilobits = 0;
-
-  const has_audio_track = active_tracks.audio.length > 0;
-  if (has_audio_track) {
-    audio_kilobits = options.audio_bitrate * length;
-    video_kilobits -= audio_kilobits;
+  let video_bitrate = 0;
+  if (options.target_filesize) {
+    let video_kilobits = options.target_filesize * 8;
+    let audio_kilobits = 0;
+    if (hasAudioTrack) {
+      audio_kilobits = options.audio_bitrate * duration;
+      video_kilobits -= audio_kilobits;
+    }
+    video_bitrate = Math.floor(video_kilobits / duration);
   }
 
-  const video_bitrate = Math.floor(video_kilobits / length);
-  const audio_bitrate = Math.floor(audio_kilobits / length);
-  return [video_bitrate, audio_bitrate];
+  return [video_bitrate, options.audio_bitrate];
 }
 
 // FIXME: remove side-effects from cmd building routine
@@ -330,7 +327,6 @@ function fixPathTime(startTime: number, endTime: number) {
   return { path, is_stream, is_temporary, startTime, endTime };
 }
 
-// FIXME: remove side-effects from cmd building routine (two pass)
 function buildCommand(
   region: Region,
   origStartTime: number,
@@ -342,6 +338,26 @@ function buildCommand(
     return;
   }
   const { path, is_stream, is_temporary, startTime, endTime } = pathRes;
+
+  const format = formatByName[options.output_format];
+  const active_tracks = get_active_tracks();
+  const supported_active_tracks = filter_tracks_supported_by_format(
+    active_tracks,
+    format
+  );
+
+  // Video track is required for Video format but Audio is optional
+  const hasVideoCodec = !!format.videoCodec;
+  const hasVideoTrack = !!supported_active_tracks.video.length;
+  if (hasVideoCodec && !hasVideoTrack) {
+    message("No video track selected");
+    return;
+  }
+  const hasAudioTrack = !!supported_active_tracks.audio.length;
+  if (!hasVideoTrack && !hasAudioTrack) {
+    message("No video and audio tracks selected");
+    return;
+  }
 
   const command = [
     "mpv",
@@ -355,14 +371,40 @@ function buildCommand(
     "--no-pause",
   ];
 
-  const format = formatByName[options.output_format];
-  command.push(...format.getCodecFlags());
+  if (hasVideoTrack) {
+    command.push(...format.getVideoFlags());
+  }
+  if (hasAudioTrack) {
+    command.push(...format.getAudioFlags());
+  }
 
-  const active_tracks = get_active_tracks();
-  const supported_active_tracks = filter_tracks_supported_by_format(
-    active_tracks,
-    format
+  const duration = endTime - startTime;
+  const [vbitrate, abitrate] = calcBitrate(
+    hasVideoTrack,
+    hasAudioTrack,
+    duration
   );
+  if (hasVideoTrack) {
+    if (vbitrate) {
+      command.push(`--ovcopts-add=b=${vbitrate}k`);
+    } else {
+      // const type = format.videoCodec ? "ovc" : "oac";
+      // set video bitrate to 0. This might enable constant quality, or some
+      // other encoding modes, depending on the codec.
+      // command.push(`--${type}opts-add=b=0`); FIXME: libvpx/libaom
+      if (options.crf >= 0) {
+        command.push(`--ovcopts-add=crf=${options.crf}`);
+      }
+    }
+  }
+  if (hasAudioTrack) {
+    command.push(`--oacopts-add=b=${abitrate}k`);
+    // FIXME: do we need to downmix to stereo in case of e.g. 5.1 source?
+    // command.push("--audio-channels=2");
+  }
+
+  // FIXME: does order of codec/track flags matter?
+  // Append selected tracks
   for (const [track_type, tracks] of ObjectEntries(supported_active_tracks)) {
     if (track_type === "audio") {
       append_audio_tracks(command, tracks);
@@ -372,9 +414,9 @@ function buildCommand(
       }
     }
   }
-
+  // Disable non-selected tracks
   for (const [track_type, tracks] of ObjectEntries(supported_active_tracks)) {
-    if (tracks.length > 0) continue;
+    if (tracks.length) continue;
     switch (track_type) {
       case "video":
         command.push("--vid=no");
@@ -388,37 +430,14 @@ function buildCommand(
     }
   }
 
-  if (format.videoCodec) {
+  if (hasVideoTrack) {
     // All those are only valid for video codecs.
     command.push(...get_video_encode_flags(format, region));
   }
 
-  command.push(...format.getFlags());
+  command.push(...format.getPostFlags());
 
   command.push(...get_metadata_flags());
-
-  if (options.target_filesize > 0) {
-    const length = endTime - startTime;
-    const [video_bitrate, audio_bitrate] = calculate_bitrate(
-      supported_active_tracks,
-      format,
-      length
-    );
-    if (video_bitrate) {
-      command.push(`--ovcopts-add=b=${video_bitrate}k`);
-    }
-    if (audio_bitrate) {
-      command.push(`--oacopts-add=b=${audio_bitrate}k`);
-    }
-  } else {
-    // const type = format.videoCodec ? "ovc" : "oac";
-    // set video bitrate to 0. This might enable constant quality, or some
-    // other encoding modes, depending on the codec.
-    // command.push(`--${type}opts-add=b=0`);
-    if (options.crf >= 0) {
-      command.push(`--ovcopts-add=crf=${options.crf}`);
-    }
-  }
 
   // split the user-passed settings on whitespace
   if (options.additional_flags.trim()) {
@@ -454,7 +473,7 @@ function buildCommand(
 }
 
 function shouldTwoPass(format: Format) {
-  if (options.target_filesize > 0) return true;
+  if (options.target_filesize) return true;
   return format.twoPassRequired;
 }
 

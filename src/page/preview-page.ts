@@ -1,5 +1,5 @@
-import AssDraw from "../assdraw";
-import { ObjectEntries } from "../polyfills";
+import AssDraw from "../lib/assdraw";
+import { ObjectEntries } from "../lib/polyfills";
 import { bold } from "../utils";
 import type { Region } from "../video-to-screen";
 import Page from "./page";

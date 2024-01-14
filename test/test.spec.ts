@@ -1,12 +1,15 @@
 import test from "node:test";
 import { deepEqual } from "node:assert/strict";
 
-import "./mock";
-
 import { format_filename } from "../src/utils";
 import { formatByName } from "../src/formats";
 import { exportedForTesting as encodeTesting } from "../src/encode";
+import { exportedForTesting as capsTesting } from "../src/caps";
 import { Region } from "../src/video-to-screen";
+
+import { enableMock, enableVideoToolbox } from "./mock";
+
+enableMock();
 
 const START_TIME = 1.41708333333333;
 const END_TIME = 3.0427083333333;
@@ -19,8 +22,6 @@ test("format_filename", () => {
 
 test("buildCommand", () => {
   const cmdRes = encodeTesting.buildCommand(new Region(), START_TIME, END_TIME);
-  deepEqual(!!cmdRes, true);
-
   deepEqual(cmdRes.command, [
     "mpv",
     "/home/user/video.mp4",
@@ -30,6 +31,8 @@ test("buildCommand", () => {
     "--no-pause",
     "--ovc=libx264",
     "--oac=aac",
+    "--ovcopts-add=crf=23",
+    "--oacopts-add=b=192k",
     "--vid=1",
     "--aid=1",
     "--sid=no",
@@ -40,8 +43,16 @@ test("buildCommand", () => {
     "--sub-delay=0.000000",
     "--video-rotate=0",
     "--deinterlace=no",
+    "--ofopts-add=movflags=+faststart",
     "--oset-metadata=title=%5%video",
-    "--ovcopts-add=crf=23",
     "--o=/home/user/Downloads/video-[00.01.417-00.03.042].mp4",
   ]);
+});
+
+test("buildCommand aac_at", () => {
+  capsTesting.resetCaps();
+  enableVideoToolbox();
+  const cmdRes = encodeTesting.buildCommand(new Region(), START_TIME, END_TIME);
+  const cmd = cmdRes.command;
+  deepEqual(cmd.includes("--oac=aac_at"), true, JSON.stringify(cmd));
 });

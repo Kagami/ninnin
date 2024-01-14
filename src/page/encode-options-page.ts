@@ -1,7 +1,7 @@
-import AssDraw from "../assdraw";
+import AssDraw from "../lib/assdraw";
 import { formats } from "../formats";
 import options, { type Options } from "../options";
-import { ArrayEntries } from "../polyfills";
+import { ArrayEntries } from "../lib/polyfills";
 import { bold } from "../utils";
 import {
   type EncOption,
@@ -62,7 +62,10 @@ export default class EncodeOptionsPage extends Page {
       [240],
     ];
 
-    const formatOpts: ListOpts<string> = formats.map((v) => [v[0]]);
+    const formatOpts: ListOpts<string> = formats.map((v) => [
+      v[0],
+      v[1].displayName,
+    ]);
 
     // const gifDitherOpts: ListOpts<number> = [
     //   [0, "bayer_scale 0"],
@@ -78,11 +81,11 @@ export default class EncodeOptionsPage extends Page {
     // prettier-ignore
     this.options = [
       ["output_format", new EncOptionList("Output Format", options.output_format, formatOpts)],
-      // ["apply_current_filters", new EncOptionBool("Apply Current Video Filters", options.apply_current_filters, null)],
       ["scale_height", new EncOptionList("Scale Height", options.scale_height, scaleHeightOpts)],
       ["target_filesize", new EncOptionInt("Target Filesize", options.target_filesize, filesizeOpts)],
       ["crf", new EncOptionInt("CRF", options.crf, crfOpts)],
       ["fps", new EncOptionList("FPS", options.fps, fpsOpts)],
+      // ["apply_current_filters", new EncOptionBool("Apply Current Video Filters", options.apply_current_filters, null)],
       // ["gif_dither", new EncOptionList("GIF Dither Type", options.gif_dither, gifDitherOpts, () => this.options[0][1].getValue() === "gif")],
       // ["force_square_pixels", new EncOptionBool("Force Square Pixels", options.force_square_pixels, null)],
     ]

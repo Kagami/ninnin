@@ -1,4 +1,4 @@
-import AssDraw from "../assdraw";
+import AssDraw from "../lib/assdraw";
 import { bold } from "../utils";
 import { Region, VideoPoint, get_video_dimensions } from "../video-to-screen";
 import Page from "./page";

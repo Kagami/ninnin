@@ -1,6 +1,6 @@
-import type AssDraw from "../assdraw";
+import type AssDraw from "../lib/assdraw";
 import options from "../options";
-import { ObjectEntries } from "../polyfills";
+import { ObjectEntries } from "../lib/polyfills";
 import { calculate_scale_factor } from "../utils";
 
 export default class Page {

@@ -1,4 +1,5 @@
-import { ObjectFromEntries } from "./polyfills";
+import { getCaps } from "./caps";
+import { ObjectFromEntries } from "./lib/polyfills";
 
 // A basic format class, which specifies some fields to be set by child classes.
 export class Format {
@@ -20,20 +21,18 @@ export class Format {
   }
 
   // A list of flags, to be appended to the command line.
-  getFlags() {
+  getPostFlags() {
     return [] as string[];
   }
 
-  // The codec flags (ovc and oac)
-  getCodecFlags() {
-    const codecs: string[] = [];
-    if (this.videoCodec) {
-      codecs.push(`--ovc=${this.videoCodec}`);
-    }
-    if (this.audioCodec) {
-      codecs.push(`--oac=${this.audioCodec}`);
-    }
-    return codecs;
+  // The codec flags
+  getVideoFlags() {
+    if (!this.videoCodec) return [];
+    return [`--ovc=${this.videoCodec}`];
+  }
+  getAudioFlags() {
+    if (!this.audioCodec) return [];
+    return [`--oac=${this.audioCodec}`];
   }
 
   // Method to modify commandline arguments just before the command is executed
@@ -52,6 +51,19 @@ class AVC extends Format {
   public videoCodec = "libx264";
   public audioCodec = "aac";
   public outputExtension = "mp4";
+
+  getAudioFlags() {
+    if (getCaps().has_aac_at) {
+      // FIXME: TVBR vs CVBR?
+      return ["--oac=aac_at", "--oacopts-add=aac_at_mode=cvbr"];
+    } else {
+      return ["--oac=aac"];
+    }
+  }
+
+  getPostFlags() {
+    return ["--ofopts-add=movflags=+faststart"];
+  }
 }
 
 export const formats: [string, Format][] = [["avc", new AVC()]];

@@ -19,4 +19,10 @@ export namespace MP {
     enabled?: boolean;
     params?: { [key: string]: string };
   }
+
+  interface Encoder {
+    codec: string;
+    description: string;
+    driver: string;
+  }
 }

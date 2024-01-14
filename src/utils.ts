@@ -1,6 +1,6 @@
 import type { Format } from "./formats";
 import options from "./options";
-import { StringMatchAll, StringEndsWith } from "./polyfills";
+import { StringMatchAll, StringEndsWith } from "./lib/polyfills";
 
 function format_d(n: number) {
   return Math.floor(n) + "";
@@ -263,7 +263,9 @@ export function parse_directory(dir: string) {
 }
 
 // FIXME: is that reliable?
-export const is_windows = (mp.utils.getcwd() || "")[0] !== "/";
+function isWindows() {
+  return (mp.utils.getcwd() || "")[0] !== "/";
+}
 
 // function get_null_path() {
 //   if (file_exists("/dev/null")) {
@@ -295,7 +297,7 @@ function shell_escape(args: string[]) {
     let s = a + "";
     if (/[^A-Za-z0-9_/:=-]/.test(s)) {
       // Single quotes for UNIX, double quotes for Windows.
-      if (is_windows) {
+      if (isWindows()) {
         s = '"' + s.replace(/"/g, '"\\""') + '"';
       } else {
         s = "'" + s.replace(/'/g, "'\\''") + "'";
@@ -304,7 +306,7 @@ function shell_escape(args: string[]) {
     ret.push(s);
   }
   let concat = ret.join(" ");
-  if (is_windows) {
+  if (isWindows()) {
     // Add a second set of double-quotes because idk it works
     concat = '"' + concat + '"';
   }
@@ -334,7 +336,7 @@ export function calculate_scale_factor() {
 
 export function should_display_progress() {
   if (!isPopenAvailable) return false;
-  return !is_windows;
+  return !isWindows();
 }
 
 export function get_pass_logfile_path(encode_out_path: string) {
