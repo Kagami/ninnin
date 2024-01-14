@@ -1,4 +1,4 @@
-import { formats, type Format } from "./formats";
+import { type Format, formatByName } from "./formats";
 import type { Region } from "./video-to-screen";
 import options from "./options";
 import {
@@ -215,6 +215,8 @@ function get_speed_flags() {
   return ret;
 }
 
+// FIXME: Title OR Filename
+// FIXME: why title.length
 function get_metadata_flags() {
   const title = mp.get_property("filename/no-ext");
   return [`--oset-metadata=title=%${title.length}%${title}`];
@@ -274,34 +276,29 @@ function get_video_encode_flags(format: Format, region: Region) {
   return flags;
 }
 
-// FIXME: return object and indicate null?
 function calculate_bitrate(
   active_tracks: ActiveTracks,
   format: Format,
   length: number
 ) {
-  // FIXME: don't need this?
   if (!format.videoCodec) {
-    // Allocate everything to the audio, not a lot we can do here
+    // Allocate everything to the audio
+    // FIXME: this could be bigger than format allows.
+    // But we don't currently have audio-only formats anyway.
     return [0, (options.target_filesize * 8) / length];
   }
 
   let video_kilobits = options.target_filesize * 8;
   let audio_kilobits = 0;
 
-  // FIXME: remove and always handle audio bitrate
   const has_audio_track = active_tracks.audio.length > 0;
-  if (options.strict_filesize_constraint && has_audio_track) {
-    // We only care about audio bitrate on strict encodes
-    audio_kilobits = length * options.strict_audio_bitrate;
+  if (has_audio_track) {
+    audio_kilobits = options.audio_bitrate * length;
     video_kilobits -= audio_kilobits;
   }
 
   const video_bitrate = Math.floor(video_kilobits / length);
-  const audio_bitrate = audio_kilobits
-    ? Math.floor(audio_kilobits / length)
-    : 0;
-
+  const audio_bitrate = Math.floor(audio_kilobits / length);
   return [video_bitrate, audio_bitrate];
 }
 
@@ -312,7 +309,7 @@ function fixPathTime(startTime: number, endTime: number) {
 
   const is_stream = !file_exists(path);
   let is_temporary = false;
-  if (is_stream) {
+  /*if (is_stream) {
     if (mp.get_property("file-format") === "hls") {
       // FIXME: does it work?
       // FIXME: doesn't need in case of HLS VOD?
@@ -324,12 +321,11 @@ function fixPathTime(startTime: number, endTime: number) {
         seconds_to_time_string(endTime + 5, false, true),
         path,
       ]);
-
       endTime = endTime - startTime;
       startTime = 0;
       is_temporary = true;
     }
-  }
+  }*/
 
   return { path, is_stream, is_temporary, startTime, endTime };
 }
@@ -359,7 +355,7 @@ function buildCommand(
     "--no-pause",
   ];
 
-  const format = formats[options.output_format];
+  const format = formatByName[options.output_format];
   command.push(...format.getCodecFlags());
 
   const active_tracks = get_active_tracks();
@@ -399,39 +395,28 @@ function buildCommand(
 
   command.push(...format.getFlags());
 
-  if (options.write_filename_on_metadata) {
-    command.push(...get_metadata_flags());
-  }
+  command.push(...get_metadata_flags());
 
-  if (format.acceptsBitrate) {
-    if (options.target_filesize > 0) {
-      const length = endTime - startTime;
-      const [video_bitrate, audio_bitrate] = calculate_bitrate(
-        supported_active_tracks,
-        format,
-        length
-      );
-      if (video_bitrate) {
-        command.push(`--ovcopts-add=b=${video_bitrate}k`);
-      }
-
-      if (audio_bitrate) {
-        command.push(`--oacopts-add=b=${audio_bitrate}k`);
-      }
-
-      if (options.strict_filesize_constraint) {
-        const type = format.videoCodec ? "ovc" : "oac";
-        const bitrate = Math.floor((options.target_filesize * 8) / length); // XXX: missed in Lua, bug?
-        command.push(
-          `--${type}opts-add=minrate=${bitrate}k`,
-          `--${type}opts-add=maxrate=${bitrate}k`
-        );
-      }
-    } else {
-      const type = format.videoCodec ? "ovc" : "oac";
-      // set video bitrate to 0. This might enable constant quality, or some
-      // other encoding modes, depending on the codec.
-      command.push(`--${type}opts-add=b=0`);
+  if (options.target_filesize > 0) {
+    const length = endTime - startTime;
+    const [video_bitrate, audio_bitrate] = calculate_bitrate(
+      supported_active_tracks,
+      format,
+      length
+    );
+    if (video_bitrate) {
+      command.push(`--ovcopts-add=b=${video_bitrate}k`);
+    }
+    if (audio_bitrate) {
+      command.push(`--oacopts-add=b=${audio_bitrate}k`);
+    }
+  } else {
+    // const type = format.videoCodec ? "ovc" : "oac";
+    // set video bitrate to 0. This might enable constant quality, or some
+    // other encoding modes, depending on the codec.
+    // command.push(`--${type}opts-add=b=0`);
+    if (options.crf >= 0) {
+      command.push(`--ovcopts-add=crf=${options.crf}`);
     }
   }
 
@@ -440,27 +425,13 @@ function buildCommand(
     command.push(...options.additional_flags.trim().split(/\s+/));
   }
 
-  if (!options.strict_filesize_constraint) {
-    if (options.non_strict_additional_flags.trim()) {
-      command.push(...options.non_strict_additional_flags.trim().split(/\s+/));
-    }
-
-    // Also add CRF here, as it used to be a part of the non-strict flags.
-    // This might change in the future, I don't know.
-    if (options.crf >= 0) {
-      command.push(`--ovcopts-add=crf=${options.crf}`);
-    }
-  }
-
+  // save to the directory of the playing video it dir wasn't specified
+  // don't have file path for streams, so saving to HOME in that case
   let dir = "";
-  if (is_stream) {
-    dir = parse_directory("~");
-  } else {
-    [dir] = mp.utils.split_path(path);
-  }
-
   if (options.output_directory) {
     dir = parse_directory(options.output_directory);
+  } else {
+    dir = is_stream ? parse_directory("~") : mp.utils.split_path(path)[0];
   }
 
   const formatted_filename = format_filename(
@@ -482,6 +453,11 @@ function buildCommand(
   };
 }
 
+function shouldTwoPass(format: Format) {
+  if (options.target_filesize > 0) return true;
+  return format.twoPassRequired;
+}
+
 export default function doEncode(
   region: Region,
   origStartTime: number,
@@ -491,7 +467,7 @@ export default function doEncode(
   if (!cmdRes) return;
   const {
     command,
-    is_stream,
+    // is_stream,
     is_temporary,
     path,
     out_path,
@@ -501,10 +477,13 @@ export default function doEncode(
 
   // emit_event("encode-started");
 
-  // Do the first pass now, as it won't require the output path. I don't think this works on streams.
-  // Also this will ignore run_detached, at least for the first pass.
-  const format = formats[options.output_format];
-  if (options.twopass && format.supportsTwopass && !is_stream) {
+  // This will ignore run_detached, at least for the first pass.
+  // NOTE: mpv-webm doesn't do two pass for streams, but seems like it should work just fine?
+  // In case of local file: works
+  // In case of youtube URL: works
+  // In case of HLS live stream: we dump it to a temporary file, so it works
+  const format = formatByName[options.output_format];
+  if (shouldTwoPass(format)) {
     // copy the commandline
     const first_pass_cmdline = command.slice();
     first_pass_cmdline.push("--ovcopts-add=flags=+pass1");
@@ -517,7 +496,6 @@ export default function doEncode(
     if (!res) {
       message("First pass failed! Check the logs for details.");
       // emit_event("encode-finished", "fail");
-
       return;
     }
 
@@ -541,6 +519,7 @@ export default function doEncode(
     mp.utils.subprocess_detached({ args: command });
   } else {
     let res = false;
+    // FIXME: always show progress for all platforms
     if (!should_display_progress()) {
       message("Started encode...");
       res = run_subprocess({ args: command, cancellable: false });

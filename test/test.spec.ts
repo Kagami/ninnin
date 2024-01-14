@@ -4,7 +4,7 @@ import { deepEqual } from "node:assert/strict";
 import "./mock";
 
 import { format_filename } from "../src/utils";
-import { formats } from "../src/formats";
+import { formatByName } from "../src/formats";
 import { exportedForTesting as encodeTesting } from "../src/encode";
 import { Region } from "../src/video-to-screen";
 
@@ -12,9 +12,9 @@ const START_TIME = 1.41708333333333;
 const END_TIME = 3.0427083333333;
 
 test("format_filename", () => {
-  const filename = format_filename(START_TIME, END_TIME, formats.avc);
+  const filename = format_filename(START_TIME, END_TIME, formatByName.avc);
   // %F-[%s-%e]%M
-  deepEqual(filename, "video-[00.01.417-00.03.042]-audio.mp4");
+  deepEqual(filename, "video-[00.01.417-00.03.042].mp4");
 });
 
 test("buildCommand", () => {
@@ -40,9 +40,8 @@ test("buildCommand", () => {
     "--sub-delay=0.000000",
     "--video-rotate=0",
     "--deinterlace=no",
-    "--ovcopts-add=threads=4",
-    "--ovcopts-add=b=0",
+    "--oset-metadata=title=%5%video",
     "--ovcopts-add=crf=23",
-    "--o=/home/user/video-[00.01.417-00.03.042]-audio.mp4",
+    "--o=/home/user/Downloads/video-[00.01.417-00.03.042].mp4",
   ]);
 });

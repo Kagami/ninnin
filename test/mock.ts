@@ -2,6 +2,12 @@ import * as Path from "node:path";
 
 global.mp = {
   utils: {
+    getenv: (env) => {
+      if (env === "HOME") {
+        return "/home/user";
+      }
+      throw new Error("getenv " + env);
+    },
     getcwd: () => "/home/user",
     file_info: (path) => {
       return path === "/home/user/video.mp4" ? {} : null;

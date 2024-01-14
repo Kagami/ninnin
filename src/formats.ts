@@ -1,17 +1,12 @@
-import options from "./options";
-
-const formats: { [key: string]: Format } = {};
-export { formats };
+import { ObjectFromEntries } from "./polyfills";
 
 // A basic format class, which specifies some fields to be set by child classes.
 export class Format {
   public displayName = "Basic";
-  public supportsTwopass = true;
   public videoCodec = "";
   public audioCodec = "";
   public outputExtension = "";
-  // A kinda weird flag, but... whatever, I don't have a better name for it.
-  public acceptsBitrate = true; // FIXME: remove
+  public twoPassRequired = false; // libvpx/libaom have better resulting quality with 2-pass
 
   // Filters that should be applied before the transformations we do (crop, scale)
   // Should be a array of ffmpeg filters e.g. {"colormatrix=bt709", "sub"}.
@@ -35,11 +30,9 @@ export class Format {
     if (this.videoCodec) {
       codecs.push(`--ovc=${this.videoCodec}`);
     }
-
     if (this.audioCodec) {
       codecs.push(`--oac=${this.audioCodec}`);
     }
-
     return codecs;
   }
 
@@ -55,16 +48,11 @@ export class Format {
 }
 
 class AVC extends Format {
-  public displayName = "AVC (h264/AAC)";
-  public supportsTwopass = true;
+  public displayName = "AVC (H.264/AAC)";
   public videoCodec = "libx264";
   public audioCodec = "aac";
   public outputExtension = "mp4";
-  public acceptsBitrate = true;
-
-  getFlags() {
-    return [`--ovcopts-add=threads=${options.threads}`];
-  }
 }
 
-formats.avc = new AVC();
+export const formats: [string, Format][] = [["avc", new AVC()]];
+export const formatByName = ObjectFromEntries(formats);

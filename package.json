@@ -18,8 +18,8 @@
     "converter",
     "mpv",
     "mpv-script",
-    "h264",
-    "h265",
+    "avc",
+    "hevc",
     "av1"
   ],
   "author": "Kagami Hiiragi",

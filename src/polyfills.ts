@@ -6,12 +6,12 @@ function escapeRegExp(str: string) {
   return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); // $& means the whole matched string
 }
 // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/replaceAll
-export function replaceAll(str: string, find: string, replace: string) {
+export function StringReplaceAll(str: string, find: string, replace: string) {
   return str.replace(new RegExp(escapeRegExp(find), "g"), replace);
 }
 
 // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/matchAll
-export function matchAll(str: string, re: RegExp) {
+export function StringMatchAll(str: string, re: RegExp) {
   const res: string[][] = [];
   let match: RegExpExecArray | null = null;
   while ((match = re.exec(str)) !== null) {
@@ -21,17 +21,35 @@ export function matchAll(str: string, re: RegExp) {
 }
 
 // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/endsWith
-export function endsWith(str: string, suffix: string) {
+export function StringEndsWith(str: string, suffix: string) {
   return str.indexOf(suffix, str.length - suffix.length) !== -1;
 }
 
 // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/entries
-export function ObjectEntries(obj: any) {
-  const res: [string, any][] = [];
+export function ObjectEntries<T>(obj: { [key: string]: T }) {
+  const res: [string, T][] = [];
   for (const key in obj) {
     if (obj.hasOwnProperty(key)) {
       res.push([key, obj[key]]);
     }
+  }
+  return res;
+}
+
+// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/fromEntries
+export function ObjectFromEntries<T>(entries: [string, T][]) {
+  const res: { [key: string]: T } = {};
+  for (const [key, value] of entries) {
+    res[key] = value;
+  }
+  return res;
+}
+
+// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/entries
+export function ArrayEntries<T>(arr: T[]) {
+  const res: [number, T][] = [];
+  for (let i = 0; i < arr.length; i++) {
+    res.push([i, arr[i]]);
   }
   return res;
 }

@@ -1,6 +1,6 @@
 import type { Format } from "./formats";
 import options from "./options";
-import { matchAll, endsWith } from "./polyfills";
+import { StringMatchAll, StringEndsWith } from "./polyfills";
 
 function format_d(n: number) {
   return Math.floor(n) + "";
@@ -76,10 +76,15 @@ function expand_properties(text: string, magic = "$") {
     "\\" + magic + "\\{([?!]?)(=?)([^}:]*)(:?)([^}]*)(\\}*)}",
     "g"
   );
-  for (const [_, origPrefix, raw, prop, colon, fallback, closing] of matchAll(
-    text,
-    re
-  )) {
+  for (const [
+    _,
+    origPrefix,
+    raw,
+    prop,
+    colon,
+    fallback,
+    closing,
+  ] of StringMatchAll(text, re)) {
     let prefix = origPrefix;
     let actual_prop = prop;
     let compare_value: string | undefined;
@@ -206,7 +211,7 @@ export function format_filename(
   } else {
     const f = mp.get_property("filename", "");
     let x = mp.get_property("stream-open-filename", "");
-    if (endsWith(x, f)) {
+    if (StringEndsWith(x, f)) {
       x = x.slice(0, -f.length);
     }
     filename = filename.replace(/%X\{[^}]*\}/g, x);
@@ -307,10 +312,10 @@ function shell_escape(args: string[]) {
 }
 
 // FIXME: port
+const isPopenAvailable = false;
 function lua_io_popen(_command_line: string): any {
   throw new Error("not implemented");
 }
-const isPopenAvailable = false;
 
 export function run_subprocess_popen(command_line: string[]) {
   let command_line_string = shell_escape(command_line);
@@ -329,10 +334,7 @@ export function calculate_scale_factor() {
 
 export function should_display_progress() {
   if (!isPopenAvailable) return false;
-  if (options.display_progress === "auto") {
-    return !is_windows;
-  }
-  return options.display_progress;
+  return !is_windows;
 }
 
 export function get_pass_logfile_path(encode_out_path: string) {

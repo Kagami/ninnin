@@ -4,15 +4,9 @@ import { bold } from "../utils";
 import type { Region } from "../video-to-screen";
 import Page from "./page";
 
-interface OriginalProps {
-  vf: any;
-  "time-pos": number;
-  pause: boolean;
-}
-
 export default class PreviewPage extends Page {
   private callback: () => void;
-  private originalProperties: OriginalProps;
+  private origProps: { [key: string]: any };
   private region: Region;
   private startTime: number;
   private endTime: number;
@@ -27,7 +21,7 @@ export default class PreviewPage extends Page {
     super();
 
     this.callback = callback;
-    this.originalProperties = {
+    this.origProps = {
       vf: mp.get_property_native("vf"),
       "time-pos": mp.get_property_native("time-pos"),
       pause: mp.get_property_native("pause"),
@@ -73,7 +67,7 @@ export default class PreviewPage extends Page {
     mp.set_property("ab-loop-b", "no");
 
     // restore original properties
-    for (const [prop, value] of ObjectEntries(this.originalProperties)) {
+    for (const [prop, value] of ObjectEntries(this.origProps)) {
       mp.set_property_native(prop, value);
     }
   }
