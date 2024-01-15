@@ -1,5 +1,9 @@
 import * as Path from "node:path";
 
+import options from "../src/options";
+import { resetCaps } from "../src/caps";
+
+const DEFAULT_OPTIONS = { ...options };
 let videoToolboxEnabled = false;
 
 const mp = {
@@ -117,4 +121,10 @@ export function setMock() {
 
 export function enableVideoToolbox() {
   videoToolboxEnabled = true;
+}
+
+export function resetOpts() {
+  Object.assign(options, DEFAULT_OPTIONS);
+  resetCaps();
+  videoToolboxEnabled = false;
 }

@@ -213,11 +213,40 @@ function get_speed_flags() {
   return ret;
 }
 
-// FIXME: Title OR Filename
-// FIXME: why title.length
+export function getMetadataTitle() {
+  const fname = mp.get_property("filename");
+  let title = mp.get_property("media-title");
+  if (title === fname) {
+    // > If the currently played file has a title tag, use that.
+    // > Otherwise, return the filename property.
+    title = undefined;
+  }
+  if (title) {
+    title = title.slice(0, 100);
+  }
+
+  if (isStream()) {
+    let path = mp.get_property("path");
+    if (path) {
+      path = path.slice(0, 100);
+    }
+    title = title ? title + ` <${path}>` : path;
+  } else {
+    const fnoext = mp.get_property("filename/no-ext");
+    // don't change existing title for local file
+    title = title || fnoext;
+  }
+
+  if (title) {
+    title = title.slice(0, 200);
+  }
+
+  return title;
+}
+
 function get_metadata_flags() {
-  const title = mp.get_property("filename/no-ext");
-  return [`--oset-metadata=title=%${title.length}%${title}`];
+  const title = getMetadataTitle();
+  return title ? [`--oset-metadata=title=${title}`] : [];
 }
 
 function apply_current_filters(filters: string[]) {
@@ -348,12 +377,12 @@ export function getOutPath(startTime: number, endTime: number) {
   return mp.utils.join_path(dir, formatted_filename);
 }
 
-function buildCommand(
+export function buildCommand(
   region: Region,
   origStartTime: number,
   origEndTime: number
 ) {
-  const path: string = mp.get_property("path");
+  const path = mp.get_property("path");
   if (!path) {
     message("No file is being played");
     return;
@@ -453,7 +482,9 @@ function buildCommand(
 
   command.push(...format.getPostFlags());
 
-  command.push(...get_metadata_flags());
+  if (options.write_metadata_title) {
+    command.push(...get_metadata_flags());
+  }
 
   // split the user-passed settings on whitespace
   if (options.additional_flags.trim()) {
@@ -478,7 +509,7 @@ function shouldTwoPass(format: Format) {
   return format.twoPassPreferable;
 }
 
-export default function doEncode(
+export function doEncode(
   region: Region,
   origStartTime: number,
   origEndTime: number
@@ -556,5 +587,3 @@ export default function doEncode(
     }
   }
 }
-
-export const exportedForTesting = { buildCommand };

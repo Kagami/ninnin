@@ -25,6 +25,11 @@ export function StringEndsWith(str: string, suffix: string) {
   return str.indexOf(suffix, str.length - suffix.length) !== -1;
 }
 
+// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/includes
+export function StringIncludes(str: string, search: string) {
+  return str.indexOf(search) !== -1;
+}
+
 // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/entries
 export function ObjectEntries<T>(obj: { [key: string]: T }) {
   const res: [string, T][] = [];

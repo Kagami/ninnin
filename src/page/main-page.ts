@@ -2,10 +2,11 @@ import Page from "./page";
 import CropPage from "./crop-page";
 import PreviewPage from "./preview-page";
 import EncodeOptionsPage from "./encode-options-page";
-import doEncode, { getOutPath } from "../encode";
+import { doEncode, getMetadataTitle, getOutPath } from "../encode";
 import { Region } from "../video-to-screen";
 import { bold, message, seconds_to_time_string } from "../utils";
 import AssDraw from "../lib/assdraw";
+import options from "../options";
 
 export default class MainPage extends Page {
   private startTime = -1;
@@ -76,19 +77,23 @@ export default class MainPage extends Page {
     ass.new_event();
     this.setup_text(ass);
     const outPath = getOutPath(this.startTime, this.endTime);
+    const title = getMetadataTitle();
     // prettier-ignore
     {
-    ass.append(`${bold('ninnin encoder')}\\N\\N`);
-    ass.append(`output: ${outPath}\\N`);
-    ass.append(`${bold('o:')} change encode options\\N`);
-    ass.append(`${bold('1:')} set start time (current is ${seconds_to_time_string(this.startTime)})\\N`);
-    ass.append(`${bold('2:')} set end time (current is ${seconds_to_time_string(this.endTime)})\\N`);
-    // ass.append(`${bold('!:')} jump to start time\\N`);
-    // ass.append(`${bold('@:')} jump to end time\\N`);
-    ass.append(`${bold('c:')} crop\\N`);
-    ass.append(`${bold('p:')} preview\\N`);
-    ass.append(`${bold('e:')} encode\\N\\N`);
-    ass.append(`${bold('ESC:')} close\\N`);
+      ass.append(`${bold('ninnin encoder')}\\N\\N`);
+      ass.append(`output: ${outPath}\\N`);
+      if (options.write_metadata_title && title) {
+        ass.append(`title: ${title}\\N`);
+      }
+      ass.append(`${bold('o:')} change encode options\\N`);
+      ass.append(`${bold('1:')} set start time (current is ${seconds_to_time_string(this.startTime)})\\N`);
+      ass.append(`${bold('2:')} set end time (current is ${seconds_to_time_string(this.endTime)})\\N`);
+      // ass.append(`${bold('!:')} jump to start time\\N`);
+      // ass.append(`${bold('@:')} jump to end time\\N`);
+      ass.append(`${bold('c:')} crop\\N`);
+      ass.append(`${bold('p:')} preview\\N`);
+      ass.append(`${bold('e:')} encode\\N\\N`);
+      ass.append(`${bold('ESC:')} close\\N`);
     }
     mp.set_osd_ass(window_w, window_h, ass.text);
   }

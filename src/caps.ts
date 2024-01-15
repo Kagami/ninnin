@@ -30,10 +30,7 @@ export function getCaps() {
   return caps;
 }
 
-function resetCaps() {
+export function resetCaps() {
   capsInited = false;
   ObjectAssign(caps, DEFAULT_CAPS);
 }
-
-const exportedForTesting = { resetCaps };
-export { exportedForTesting };

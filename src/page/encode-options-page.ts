@@ -5,7 +5,7 @@ import { ArrayEntries, ObjectFromEntries } from "../lib/polyfills";
 import { bold } from "../utils";
 import {
   type EncOption,
-  // EncOptionBool,
+  EncOptionBool,
   EncOptionInt,
   EncOptionList,
   type EncOptionListOpts as ListOpts,
@@ -59,7 +59,7 @@ export default class EncodeOptionsPage extends Page {
       min: 0,
       max: 51,
     };
-    const qscaleOpts = {
+    const vtbOpts = {
       step: 1,
       min: 0,
       max: 100,
@@ -102,10 +102,12 @@ export default class EncodeOptionsPage extends Page {
       ["x265_preset", new EncOptionList("Preset", options.x265_preset, presetOpts, () => this.shownX265Opts())],
 
       ["crf", new EncOptionInt("Video quality", options.crf, crfOpts, () => this.shownCrfOpt())],
-      ["vtb_qscale", new EncOptionInt("Video quality", options.vtb_qscale, qscaleOpts, () => this.shownQscaleOpt())],
+      ["vtb_qscale", new EncOptionInt("Video quality", options.vtb_qscale, vtbOpts, () => this.shownVtbOpt())],
 
       ["audio_bitrate", new EncOptionInt("Audio bitrate", options.audio_bitrate, abOpts)],
       ["fps", new EncOptionList("FPS", options.fps, fpsOpts)],
+
+      ["write_metadata_title", new EncOptionBool("Write title", options.write_metadata_title, null)],
       // ["apply_current_filters", new EncOptionBool("Apply Current Video Filters", options.apply_current_filters, null)],
       // ["gif_dither", new EncOptionList("GIF Dither Type", options.gif_dither, gifDitherOpts, () => this.options[0][1].getValue() === "gif")],
       // ["force_square_pixels", new EncOptionBool("Force Square Pixels", options.force_square_pixels, null)],
@@ -138,7 +140,7 @@ export default class EncodeOptionsPage extends Page {
   shownCrfOpt() {
     return this.formatOpt() !== "hevc_vtb" && !this.filesizeOpt();
   }
-  shownQscaleOpt() {
+  shownVtbOpt() {
     return this.formatOpt() === "hevc_vtb" && !this.filesizeOpt();
   }
 
@@ -201,7 +203,7 @@ export default class EncodeOptionsPage extends Page {
     const ass = new AssDraw();
     ass.new_event();
     this.setup_text(ass);
-    ass.append(`${bold("Options:")}\\N\\N`);
+    ass.append(`${bold("ninnin options")}\\N\\N`);
     for (const [i, optPair] of ArrayEntries(this.options)) {
       const opt = optPair[1];
       if (opt.optVisible()) {

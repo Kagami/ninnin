@@ -1,19 +1,24 @@
-import test from "node:test";
+import { test, before, beforeEach } from "node:test";
 import { deepEqual } from "node:assert/strict";
 
 import { format_filename } from "../src/utils";
 import { formatByName } from "../src/formats";
-import { exportedForTesting as encodeTesting } from "../src/encode";
-import { exportedForTesting as capsTesting } from "../src/caps";
+import { buildCommand } from "../src/encode";
 import { Region } from "../src/video-to-screen";
 
-import { setMock, enableVideoToolbox } from "./mock";
+import { setMock, enableVideoToolbox, resetOpts } from "./mock";
 import options from "../src/options";
-
-setMock();
 
 const START_TIME = 1.41708333333333;
 const END_TIME = 3.0427083333333;
+
+before(() => {
+  setMock();
+});
+
+beforeEach(() => {
+  resetOpts();
+});
 
 test("format_filename", () => {
   const filename = format_filename(START_TIME, END_TIME, formatByName.x264);
@@ -22,7 +27,7 @@ test("format_filename", () => {
 });
 
 test("buildCommand x264/aac", () => {
-  const cmdRes = encodeTesting.buildCommand(new Region(), START_TIME, END_TIME);
+  const cmdRes = buildCommand(new Region(), START_TIME, END_TIME);
   deepEqual(cmdRes.command, [
     "mpv",
     "/home/user/video.mp4",
@@ -46,22 +51,22 @@ test("buildCommand x264/aac", () => {
     "--video-rotate=0",
     "--deinterlace=no",
     "--ofopts-add=movflags=+faststart",
-    "--oset-metadata=title=%5%video",
+    "--oset-metadata=title=test video",
     "--o=/home/user/Downloads/video-[00.01.417-00.03.042].mp4",
   ]);
 });
 
 test("buildCommand x264/aac_at", () => {
-  capsTesting.resetCaps();
   enableVideoToolbox();
-  const cmdRes = encodeTesting.buildCommand(new Region(), START_TIME, END_TIME);
+  const cmdRes = buildCommand(new Region(), START_TIME, END_TIME);
   const cmd = cmdRes.command;
   deepEqual(cmd.includes("--oac=aac_at"), true, JSON.stringify(cmd));
 });
 
 test("buildCommand x265/aac_at", () => {
+  enableVideoToolbox();
   options.output_format = "x265";
-  const cmdRes = encodeTesting.buildCommand(new Region(), START_TIME, END_TIME);
+  const cmdRes = buildCommand(new Region(), START_TIME, END_TIME);
   deepEqual(cmdRes.command, [
     "mpv",
     "/home/user/video.mp4",
@@ -87,14 +92,15 @@ test("buildCommand x265/aac_at", () => {
     "--deinterlace=no",
     "--vf-add=format=yuv420p10le",
     "--ofopts-add=movflags=+faststart",
-    "--oset-metadata=title=%5%video",
+    "--oset-metadata=title=test video",
     "--o=/home/user/Downloads/video-[00.01.417-00.03.042].mp4",
   ]);
 });
 
 test("buildCommand hevc_vtb/aac_at", () => {
+  enableVideoToolbox();
   options.output_format = "hevc_vtb";
-  const cmdRes = encodeTesting.buildCommand(new Region(), START_TIME, END_TIME);
+  const cmdRes = buildCommand(new Region(), START_TIME, END_TIME);
   deepEqual(cmdRes.command, [
     "mpv",
     "/home/user/video.mp4",
@@ -121,7 +127,7 @@ test("buildCommand hevc_vtb/aac_at", () => {
     "--deinterlace=no",
     "--vf-add=format=p010le",
     "--ofopts-add=movflags=+faststart",
-    "--oset-metadata=title=%5%video",
+    "--oset-metadata=title=test video",
     "--o=/home/user/Downloads/video-[00.01.417-00.03.042].mp4",
   ]);
 });

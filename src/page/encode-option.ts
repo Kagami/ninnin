@@ -83,6 +83,12 @@ export class EncOption<T, O> {
 }
 
 export class EncOptionBool extends EncOption<boolean, null> {
+  hasPrevious() {
+    return this.value;
+  }
+  hasNext() {
+    return !this.value;
+  }
   leftKey() {
     this.value = !this.value;
   }

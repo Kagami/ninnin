@@ -47,13 +47,15 @@ const options = {
   force_square_pixels: false,
   // In kilobits.
   audio_bitrate: 192,
+  // If set, writes video's filename or stream info to the "Title" field.
+  write_metadata_title: true,
   // Custom encoding flags.
   additional_flags: "",
   // gif dither mode, 0-5 for bayer w/ bayer_scale 0-5, 6 for paletteuse default (sierra2_4a)
   gif_dither: 2,
 
   // The font size used in the menu. Isn't used for the notifications (started encode, finished encode etc)
-  font_size: 28,
+  font_size: 20,
   margin: 10,
   message_duration: 5,
 };

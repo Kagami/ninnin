@@ -172,13 +172,13 @@ export function format_filename(
     [/%ms/g, format_d(Math.floor(endTime))],
     [/%mf/g, format_d(endTime)],
     [/%mT/g, format_3f(endTime % 1).slice(2)],
-    [/%f/g, mp.get_property("filename")],
-    [/%F/g, mp.get_property("filename/no-ext")],
+    [/%f/g, mp.get_property("filename")!],
+    [/%F/g, mp.get_property("filename/no-ext")!],
     [/%s/g, seconds_to_path_element(startTime)],
     [/%S/g, seconds_to_path_element(startTime, true)],
     [/%e/g, seconds_to_path_element(endTime)],
     [/%E/g, seconds_to_path_element(endTime, true)],
-    [/%T/g, mp.get_property("media-title")],
+    [/%T/g, mp.get_property("media-title")!],
     [
       /%M/g,
       mp.get_property_native("aid") &&
@@ -193,7 +193,7 @@ export function format_filename(
         ? `-${options.scale_height}p`
         : `-${mp.get_property_native("height")}p`,
     ],
-    [/%mb/g, options.target_filesize / 1000],
+    [/%mb/g, options.target_filesize / 1000 + ""],
     [/%t%/g, "%"],
   ];
 
