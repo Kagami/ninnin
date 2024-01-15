@@ -1,4 +1,5 @@
-import type AssDraw from "../lib/assdraw";
+import type AssDraw from "mpv-assdraw";
+
 import options from "../options";
 import { ObjectEntries } from "../lib/polyfills";
 import { calculate_scale_factor } from "../utils";

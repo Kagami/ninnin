@@ -1,4 +1,5 @@
-import AssDraw from "./lib/assdraw";
+import AssDraw from "mpv-assdraw";
+
 import Page from "./page/page";
 import { bold, run_subprocess_popen } from "./utils";
 

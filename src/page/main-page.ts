@@ -1,3 +1,5 @@
+import AssDraw from "mpv-assdraw";
+
 import Page from "./page";
 import CropPage from "./crop-page";
 import PreviewPage from "./preview-page";
@@ -5,7 +7,6 @@ import EncodeOptionsPage from "./encode-options-page";
 import { doEncode, getMetadataTitle, getOutPath } from "../encode";
 import { Region } from "../video-to-screen";
 import { bold, message, seconds_to_time_string } from "../utils";
-import AssDraw from "../lib/assdraw";
 import options from "../options";
 
 export default class MainPage extends Page {

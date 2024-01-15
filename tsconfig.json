@@ -7,9 +7,9 @@
 
     "target": "ES5",
     "module": "ESNext",
+    "moduleResolution": "node",
     "lib": ["ES5"],
     "types": [],
-    // "moduleResolution": "node",
     // "allowSyntheticDefaultImports": true,
     // "esModuleInterop": true,
     // "isolatedModules": true,

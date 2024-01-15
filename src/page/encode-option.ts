@@ -1,4 +1,5 @@
-import type AssDraw from "../lib/assdraw";
+import type AssDraw from "mpv-assdraw";
+
 import { ArrayEntries } from "../lib/polyfills";
 import { bold } from "../utils";
 

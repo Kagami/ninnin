@@ -1,4 +1,5 @@
-import AssDraw from "../lib/assdraw";
+import AssDraw from "mpv-assdraw";
+
 import { bold } from "../utils";
 import { Region, VideoPoint, get_video_dimensions } from "../video-to-screen";
 import Page from "./page";
