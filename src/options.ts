@@ -33,7 +33,10 @@ const options = {
   x265_preset: "fast",
   // Constant Rate Factor (CRF). The value meaning and limits may change,
   // from codec to codec. Set to -1 to disable.
-  crf: 23,
+  crf: 20,
+  // https://stackoverflow.com/a/69668183
+  // -q:v 65 is "acceptable"
+  vtb_qscale: 65,
   // Change the FPS of the output video, dropping or duplicating frames as needed.
   // -1 means the FPS will be unchanged from the source.
   fps: -1,

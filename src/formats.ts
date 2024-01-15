@@ -8,7 +8,8 @@ export class Format {
   public videoCodec = "";
   public audioCodec = "";
   public outputExtension = "";
-  public twoPassRequired = false; // libvpx/libaom have better resulting quality with 2-pass
+  public twoPassSupported = true;
+  public twoPassPreferable = false; // libvpx/libaom have better resulting quality with 2-pass
 
   getDisplayName() {
     return this.displayName;
@@ -35,7 +36,11 @@ export class Format {
     return [`--ovc=${this.videoCodec}`];
   }
   getVideoQualityFlags() {
+    // set video bitrate to 0. This might enable constant quality, or some
+    // other encoding modes, depending on the codec.
+    // command.push(`--ovcopts-add=b=0`); FIXME: libvpx/libaom
     // FIXME: is it ok to use global options here?
+    if (options.crf < 0) return [];
     return [`--ovcopts-add=crf=${options.crf}`];
   }
 
@@ -107,9 +112,45 @@ class X265 extends X264 {
   }
 }
 
+const FF_QP2LAMBDA = 118;
+class HEVC_VTB extends Format {
+  protected displayName = "hevc_vtb/aac_at";
+  public videoCodec = "hevc_videotoolbox";
+  public audioCodec = "aac";
+  public outputExtension = "mp4";
+  public twoPassSupported = false; // FIXME: check
+
+  getVideoFlags() {
+    return [
+      `--ovc=${this.videoCodec}`,
+      `--ovcopts-add=codec_tag=0x31637668`, // hvc1 tag, for compatibility with Apple devices
+    ];
+  }
+  getVideoQualityFlags() {
+    if (options.vtb_qscale < 0) return [];
+    return [
+      `--ovcopts-add=global_quality=${options.vtb_qscale * FF_QP2LAMBDA}`,
+      "--ovcopts-add=flags=+qscale",
+    ];
+  }
+
+  getAudioFlags() {
+    return ["--oac=aac_at", "--oacopts-add=aac_at_mode=cvbr"];
+  }
+
+  getPostFilters() {
+    return ["format=p010le"];
+  }
+
+  getPostFlags() {
+    return ["--ofopts-add=movflags=+faststart"];
+  }
+}
+
 export const formats: [string, Format][] = [
   ["x264", new X264()],
   ["x265", new X265()],
+  ["hevc_vtb", new HEVC_VTB()],
 ];
 export const formatByName = ObjectFromEntries(formats);
 

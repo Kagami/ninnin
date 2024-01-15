@@ -80,12 +80,12 @@ export default class MainPage extends Page {
     {
     ass.append(`${bold('ninnin encoder')}\\N\\N`);
     ass.append(`output: ${outPath}\\N`);
+    ass.append(`${bold('o:')} change encode options\\N`);
     ass.append(`${bold('1:')} set start time (current is ${seconds_to_time_string(this.startTime)})\\N`);
     ass.append(`${bold('2:')} set end time (current is ${seconds_to_time_string(this.endTime)})\\N`);
-    ass.append(`${bold('c:')} crop\\N`);
     // ass.append(`${bold('!:')} jump to start time\\N`);
     // ass.append(`${bold('@:')} jump to end time\\N`);
-    ass.append(`${bold('o:')} change encode options\\N`);
+    ass.append(`${bold('c:')} crop\\N`);
     ass.append(`${bold('p:')} preview\\N`);
     ass.append(`${bold('e:')} encode\\N\\N`);
     ass.append(`${bold('ESC:')} close\\N`);

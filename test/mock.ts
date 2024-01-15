@@ -111,7 +111,7 @@ const mp = {
   },
 };
 
-export function enableMock() {
+export function setMock() {
   global.mp = mp;
 }
 

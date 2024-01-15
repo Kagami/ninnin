@@ -405,16 +405,11 @@ function buildCommand(
   );
   if (hasVideoTrack) {
     command.push(...format.getVideoFlags());
+    // FIXME: CQ mode for libvpx/libaom
     if (vbitrate) {
       command.push(`--ovcopts-add=b=${vbitrate}k`);
     } else {
-      // const type = format.videoCodec ? "ovc" : "oac";
-      // set video bitrate to 0. This might enable constant quality, or some
-      // other encoding modes, depending on the codec.
-      // command.push(`--${type}opts-add=b=0`); FIXME: libvpx/libaom
-      if (options.crf >= 0) {
-        command.push(...format.getVideoQualityFlags());
-      }
+      command.push(...format.getVideoQualityFlags());
     }
   }
   if (hasAudioTrack) {
@@ -479,8 +474,8 @@ function buildCommand(
 }
 
 function shouldTwoPass(format: Format) {
-  if (options.target_filesize) return true;
-  return format.twoPassRequired;
+  if (options.target_filesize) return format.twoPassSupported;
+  return format.twoPassPreferable;
 }
 
 export default function doEncode(

@@ -1,7 +1,7 @@
 import AssDraw from "../lib/assdraw";
 import { formats } from "../formats";
 import options, { type Options } from "../options";
-import { ArrayEntries } from "../lib/polyfills";
+import { ArrayEntries, ObjectFromEntries } from "../lib/polyfills";
 import { bold } from "../utils";
 import {
   type EncOption,
@@ -16,6 +16,7 @@ export default class EncodeOptionsPage extends Page {
   private currentOption = 0;
   private callback: (updated: boolean) => void;
   private options: [keyof Options, EncOption<any, any>][];
+  private optionByName: { [key: string]: EncOption<any, any> };
 
   constructor(callback: (updated: boolean) => void) {
     super();
@@ -38,7 +39,7 @@ export default class EncodeOptionsPage extends Page {
       step: 512,
       min: 0,
       altDisplayNames: {
-        "0": "constant quality",
+        "0": "quality",
       },
     };
     const presetOpts: ListOpts<string> = [
@@ -55,10 +56,13 @@ export default class EncodeOptionsPage extends Page {
     ];
     const crfOpts = {
       step: 1,
-      min: -1,
-      altDisplayNames: {
-        "-1": "disabled",
-      },
+      min: 0,
+      max: 51,
+    };
+    const qscaleOpts = {
+      step: 1,
+      min: 0,
+      max: 100,
     };
     const abOpts = {
       step: 64,
@@ -93,15 +97,21 @@ export default class EncodeOptionsPage extends Page {
       ["output_format", new EncOptionList("Codec", options.output_format, formatOpts)],
       ["scale_height", new EncOptionList("Height", options.scale_height, scaleHeightOpts)],
       ["target_filesize", new EncOptionInt("File size", options.target_filesize, filesizeOpts)],
-      ["x264_preset", new EncOptionList("Preset", options.x264_preset, presetOpts, () => this.getFormat() === "x264")],
-      ["x265_preset", new EncOptionList("Preset", options.x265_preset, presetOpts, () => this.getFormat() === "x265")],
-      ["crf", new EncOptionInt("Video quality", options.crf, crfOpts)],
+
+      ["x264_preset", new EncOptionList("Preset", options.x264_preset, presetOpts, () => this.shownX264Opts())],
+      ["x265_preset", new EncOptionList("Preset", options.x265_preset, presetOpts, () => this.shownX265Opts())],
+
+      ["crf", new EncOptionInt("Video quality", options.crf, crfOpts, () => this.shownCrfOpt())],
+      ["vtb_qscale", new EncOptionInt("Video quality", options.vtb_qscale, qscaleOpts, () => this.shownQscaleOpt())],
+
       ["audio_bitrate", new EncOptionInt("Audio bitrate", options.audio_bitrate, abOpts)],
       ["fps", new EncOptionList("FPS", options.fps, fpsOpts)],
       // ["apply_current_filters", new EncOptionBool("Apply Current Video Filters", options.apply_current_filters, null)],
       // ["gif_dither", new EncOptionList("GIF Dither Type", options.gif_dither, gifDitherOpts, () => this.options[0][1].getValue() === "gif")],
       // ["force_square_pixels", new EncOptionBool("Force Square Pixels", options.force_square_pixels, null)],
     ]
+
+    this.optionByName = ObjectFromEntries(this.options);
 
     this.keybinds = {
       LEFT: this.leftKey.bind(this),
@@ -113,8 +123,23 @@ export default class EncodeOptionsPage extends Page {
     };
   }
 
-  getFormat() {
-    return this.options[0][1].getValue();
+  formatOpt() {
+    return this.optionByName.output_format.getValue();
+  }
+  filesizeOpt() {
+    return this.optionByName.target_filesize.getValue();
+  }
+  shownX264Opts() {
+    return this.formatOpt() === "x264";
+  }
+  shownX265Opts() {
+    return this.formatOpt() === "x265";
+  }
+  shownCrfOpt() {
+    return this.formatOpt() !== "hevc_vtb" && !this.filesizeOpt();
+  }
+  shownQscaleOpt() {
+    return this.formatOpt() === "hevc_vtb" && !this.filesizeOpt();
   }
 
   getCurrentOption() {
