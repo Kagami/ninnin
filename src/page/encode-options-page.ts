@@ -93,7 +93,8 @@ export default class EncodeOptionsPage extends Page {
       ["output_format", new EncOptionList("Codec", options.output_format, formatOpts)],
       ["scale_height", new EncOptionList("Height", options.scale_height, scaleHeightOpts)],
       ["target_filesize", new EncOptionInt("File size", options.target_filesize, filesizeOpts)],
-      ["preset", new EncOptionList("Preset", options.preset, presetOpts)],
+      ["x264_preset", new EncOptionList("Preset", options.x264_preset, presetOpts, () => this.getFormat() === "x264")],
+      ["x265_preset", new EncOptionList("Preset", options.x265_preset, presetOpts, () => this.getFormat() === "x265")],
       ["crf", new EncOptionInt("Video quality", options.crf, crfOpts)],
       ["audio_bitrate", new EncOptionInt("Audio bitrate", options.audio_bitrate, abOpts)],
       ["fps", new EncOptionList("FPS", options.fps, fpsOpts)],
@@ -110,6 +111,10 @@ export default class EncodeOptionsPage extends Page {
       ENTER: this.confirmOpts.bind(this),
       ESC: this.cancelOpts.bind(this),
     };
+  }
+
+  getFormat() {
+    return this.options[0][1].getValue();
   }
 
   getCurrentOption() {

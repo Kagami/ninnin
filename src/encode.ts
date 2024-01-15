@@ -2,7 +2,6 @@ import { type Format, getCurrentFormat } from "./formats";
 import type { Region } from "./video-to-screen";
 import options from "./options";
 import {
-  bold,
   format_filename,
   get_pass_logfile_path,
   message,
@@ -547,7 +546,7 @@ export default function doEncode(
       res = ewp.startEncode(command);
     }
     if (res) {
-      message(`Encoded successfully! Saved to\\N${bold(outPath)}`);
+      message("Encoded successfully!");
       // emit_event("encode-finished", "success");
     } else {
       message("Encode failed! Check the logs for details.");

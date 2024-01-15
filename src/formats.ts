@@ -55,7 +55,7 @@ export class Format {
   // }
 }
 
-class AVC extends Format {
+class X264 extends Format {
   public videoCodec = "libx264";
   public audioCodec = "aac";
   public outputExtension = "mp4";
@@ -64,10 +64,10 @@ class AVC extends Format {
     return getCaps().has_aac_at ? "x264/aac_at" : "x264/aac";
   }
 
-  getVideoFlags(): string[] {
+  getVideoFlags() {
     return [
       `--ovc=${this.videoCodec}`,
-      `--ovcopts-add=preset=${options.preset}`,
+      `--ovcopts-add=preset=${options.x264_preset}`,
     ];
   }
 
@@ -85,16 +85,31 @@ class AVC extends Format {
   }
 }
 
-class HEVC extends AVC {
+class X265 extends X264 {
   public videoCodec = "libx265";
+
   getDisplayName() {
     return getCaps().has_aac_at ? "x265/aac_at" : "x265/aac";
+  }
+
+  getVideoFlags() {
+    return [
+      `--ovc=${this.videoCodec}`,
+      `--ovcopts-add=preset=${options.x265_preset}`,
+    ];
+  }
+
+  getPostFilters() {
+    // Quality should be a bit better with Main10 profile even on 8bit content.
+    // FIXME: is that no-op in case of 10bit content?
+    // FIXME: maybe should be before scale for better quality or resize?
+    return ["format=yuv420p10le"];
   }
 }
 
 export const formats: [string, Format][] = [
-  ["avc", new AVC()],
-  ["hevc", new HEVC()],
+  ["x264", new X264()],
+  ["x265", new X265()],
 ];
 export const formatByName = ObjectFromEntries(formats);
 

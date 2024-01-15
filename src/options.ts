@@ -18,7 +18,7 @@ const options = {
   output_template: "%F-[%s-%e]",
 
   // Sets the output format, from a few predefined ones.
-  output_format: "avc",
+  output_format: "x264",
   // Scale video to a certain height, keeping the aspect ratio. -1 disables it.
   scale_height: -1,
   // Target filesize, in kB. This will be used to calculate the bitrate
@@ -26,8 +26,11 @@ const options = {
   // to 0, which might enable constant quality modes, depending on the
   // video codec that's used (VP8 and VP9, for example).
   target_filesize: 0,
-  // Preset, applicable to some encoders.
-  preset: "slow",
+  // Presets, applicable to some encoders.
+  x264_preset: "slow",
+  // Recommended fast and slow here:
+  // https://kokomins.wordpress.com/2019/10/10/anime-encoding-guide-for-x265-and-why-to-never-use-flac/
+  x265_preset: "fast",
   // Constant Rate Factor (CRF). The value meaning and limits may change,
   // from codec to codec. Set to -1 to disable.
   crf: 23,
