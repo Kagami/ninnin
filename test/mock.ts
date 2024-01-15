@@ -4,6 +4,21 @@ import options from "../src/options";
 import { resetCaps } from "../src/caps";
 
 const DEFAULT_OPTIONS = { ...options };
+
+const localFile = {
+  local: true,
+  filename: "video.mp4",
+  "filename/no-ext": "video",
+  path: "/home/user/video.mp4",
+};
+
+const remoteFile = {
+  local: false,
+  filename: "watch?v=ABCDEF-1234",
+  "filename/no-ext": "watch?v=ABCDEF-1234",
+  path: "https://www.youtube.com/watch?v=ABCDEF-1234",
+};
+let currentFile = localFile;
 let videoToolboxEnabled = false;
 
 const mp = {
@@ -17,9 +32,9 @@ const mp = {
     getcwd() {
       return "/home/user";
     },
-    file_info(path) {
-      return path === "/home/user/video.mp4" ? {} : null;
-    },
+    // file_info(path) {
+    //   return path === "/home/user/video.mp4" ? {} : null;
+    // },
     split_path(path) {
       return [Path.dirname(path), Path.basename(path)];
     },
@@ -35,14 +50,14 @@ const mp = {
   get_property(prop) {
     switch (prop) {
       case "filename":
-        return "video.mp4";
+        return currentFile.filename;
       case "filename/no-ext":
-        return "video";
+        return currentFile["filename/no-ext"];
       case "path":
       case "stream-open-filename":
-        return "/home/user/video.mp4";
+        return currentFile.path;
       case "media-title":
-        return "test video";
+        return "test 비디오";
       case "sub-ass-override":
         return "yes";
       case "sub-ass-force-style":
@@ -105,7 +120,7 @@ const mp = {
   get_property_bool(prop) {
     switch (prop) {
       case "demuxer-via-network":
-        return false;
+        return !currentFile.local;
       case "mute":
         return false;
       case "sub-visibility":
@@ -116,15 +131,20 @@ const mp = {
 };
 
 export function setMock() {
-  global.mp = mp;
+  global.mp = mp as any;
 }
 
 export function enableVideoToolbox() {
   videoToolboxEnabled = true;
 }
 
+export function setFile({ local } = { local: true }) {
+  currentFile = local ? localFile : remoteFile;
+}
+
 export function resetOpts() {
   Object.assign(options, DEFAULT_OPTIONS);
   resetCaps();
+  currentFile = localFile;
   videoToolboxEnabled = false;
 }

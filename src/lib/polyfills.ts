@@ -20,14 +20,19 @@ export function StringMatchAll(str: string, re: RegExp) {
   return res;
 }
 
-// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/endsWith
-export function StringEndsWith(str: string, suffix: string) {
-  return str.indexOf(suffix, str.length - suffix.length) !== -1;
+// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/startsWith
+export function StringStartsWith(str: string, prefix: string) {
+  return str.indexOf(prefix) === 0;
 }
 
 // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/includes
 export function StringIncludes(str: string, search: string) {
   return str.indexOf(search) !== -1;
+}
+
+// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/endsWith
+export function StringEndsWith(str: string, suffix: string) {
+  return str.indexOf(suffix, str.length - suffix.length) !== -1;
 }
 
 // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/entries

@@ -7,7 +7,7 @@
   "scripts": {
     "build": "rm -rf build ninnin.js && tsc && esbuild build/index.js --bundle --outfile=ninnin.js --target=es5",
     "start": "esbuild build/index.js --bundle --outfile=ninnin.js --target=es5 --watch=forever & trap 'kill $!' SIGINT && tsc --watch",
-    "test": "node --enable-source-maps --test --import=./test/register.js test/**/*.spec.*"
+    "test": "SWC_NODE_PROJECT= node --enable-source-maps --test --import=./test/register.js test/**/*.spec.*"
   },
   "repository": {
     "type": "git",

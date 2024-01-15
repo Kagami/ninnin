@@ -1,12 +1,12 @@
 import { test, before, beforeEach } from "node:test";
 import { deepEqual } from "node:assert/strict";
 
-import { format_filename } from "../src/utils";
+import { byteLength, formatFilename } from "../src/utils";
 import { formatByName } from "../src/formats";
-import { buildCommand } from "../src/encode";
+import { buildCommand, getMetadataTitle } from "../src/encode";
 import { Region } from "../src/video-to-screen";
 
-import { setMock, enableVideoToolbox, resetOpts } from "./mock";
+import { setMock, enableVideoToolbox, resetOpts, setFile } from "./mock";
 import options from "../src/options";
 
 const START_TIME = 1.41708333333333;
@@ -20,14 +20,26 @@ beforeEach(() => {
   resetOpts();
 });
 
-test("format_filename", () => {
-  const filename = format_filename(START_TIME, END_TIME, formatByName.x264);
+test("byteLength", () => {
+  deepEqual(byteLength("세모콘"), 9);
+});
+
+test("formatFilename", () => {
+  const filename = formatFilename(START_TIME, END_TIME, formatByName.x264);
   // %F-[%s-%e]%M
   deepEqual(filename, "video-[00.01.417-00.03.042].mp4");
 });
 
+test("getMetadataTitle", () => {
+  let title = getMetadataTitle();
+  deepEqual(title, "test 비디오");
+  setFile({ local: false });
+  title = getMetadataTitle();
+  deepEqual(title, "test 비디오 [youtube.com/watch?v=ABCDEF-1234]");
+});
+
 test("buildCommand x264/aac", () => {
-  const cmdRes = buildCommand(new Region(), START_TIME, END_TIME);
+  const cmdRes = buildCommand(new Region(), START_TIME, END_TIME)!;
   deepEqual(cmdRes.command, [
     "mpv",
     "/home/user/video.mp4",
@@ -51,14 +63,14 @@ test("buildCommand x264/aac", () => {
     "--video-rotate=0",
     "--deinterlace=no",
     "--ofopts-add=movflags=+faststart",
-    "--oset-metadata=title=test video",
+    "--oset-metadata=title=%14%test 비디오",
     "--o=/home/user/Downloads/video-[00.01.417-00.03.042].mp4",
   ]);
 });
 
 test("buildCommand x264/aac_at", () => {
   enableVideoToolbox();
-  const cmdRes = buildCommand(new Region(), START_TIME, END_TIME);
+  const cmdRes = buildCommand(new Region(), START_TIME, END_TIME)!;
   const cmd = cmdRes.command;
   deepEqual(cmd.includes("--oac=aac_at"), true, JSON.stringify(cmd));
 });
@@ -66,7 +78,7 @@ test("buildCommand x264/aac_at", () => {
 test("buildCommand x265/aac_at", () => {
   enableVideoToolbox();
   options.output_format = "x265";
-  const cmdRes = buildCommand(new Region(), START_TIME, END_TIME);
+  const cmdRes = buildCommand(new Region(), START_TIME, END_TIME)!;
   deepEqual(cmdRes.command, [
     "mpv",
     "/home/user/video.mp4",
@@ -92,7 +104,7 @@ test("buildCommand x265/aac_at", () => {
     "--deinterlace=no",
     "--vf-add=format=yuv420p10le",
     "--ofopts-add=movflags=+faststart",
-    "--oset-metadata=title=test video",
+    "--oset-metadata=title=%14%test 비디오",
     "--o=/home/user/Downloads/video-[00.01.417-00.03.042].mp4",
   ]);
 });
@@ -100,7 +112,7 @@ test("buildCommand x265/aac_at", () => {
 test("buildCommand hevc_vtb/aac_at", () => {
   enableVideoToolbox();
   options.output_format = "hevc_vtb";
-  const cmdRes = buildCommand(new Region(), START_TIME, END_TIME);
+  const cmdRes = buildCommand(new Region(), START_TIME, END_TIME)!;
   deepEqual(cmdRes.command, [
     "mpv",
     "/home/user/video.mp4",
@@ -127,7 +139,7 @@ test("buildCommand hevc_vtb/aac_at", () => {
     "--deinterlace=no",
     "--vf-add=format=p010le",
     "--ofopts-add=movflags=+faststart",
-    "--oset-metadata=title=test video",
+    "--oset-metadata=title=%14%test 비디오",
     "--o=/home/user/Downloads/video-[00.01.417-00.03.042].mp4",
   ]);
 });

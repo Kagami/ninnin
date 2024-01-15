@@ -22,6 +22,8 @@ declare global {
 
 // Auxiliary types are kept in separate namespace to not be confused with official API.
 export namespace MP {
+  type MP = typeof mp;
+
   type LogLevel = "fatal" | "error" | "warn" | "info" | "v" | "debug" | "trace";
 
   interface Track {

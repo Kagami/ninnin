@@ -2,7 +2,8 @@ import { type Format, getCurrentFormat } from "./formats";
 import type { Region } from "./video-to-screen";
 import options from "./options";
 import {
-  format_filename,
+  byteLength,
+  formatFilename,
   get_pass_logfile_path,
   message,
   parse_directory,
@@ -10,9 +11,10 @@ import {
   run_subprocess,
   seconds_to_time_string,
   should_display_progress,
+  stripProtocol,
 } from "./utils";
 import EncodeWithProgress from "./encode-with-progress";
-import { ObjectEntries } from "./lib/polyfills";
+import { ObjectEntries, StringStartsWith } from "./lib/polyfills";
 import type { MP } from "./lib/mpv";
 
 interface ActiveTracks {
@@ -213,6 +215,7 @@ function get_speed_flags() {
   return ret;
 }
 
+const TITLE_STRIP = 100;
 export function getMetadataTitle() {
   const fname = mp.get_property("filename");
   let title = mp.get_property("media-title");
@@ -222,23 +225,26 @@ export function getMetadataTitle() {
     title = undefined;
   }
   if (title) {
-    title = title.slice(0, 100);
+    title = title.slice(0, TITLE_STRIP);
   }
 
+  // For remote files we append/use the URL.
+  // For local files we use the filename if empty.
   if (isStream()) {
-    let path = mp.get_property("path");
-    if (path) {
-      path = path.slice(0, 100);
+    let url = mp.get_property("path");
+    if (url && !StringStartsWith(url, "http")) {
+      // ignore weird protocols
+      url = undefined;
     }
-    title = title ? title + ` <${path}>` : path;
+    url = stripProtocol(url);
+    if (url) {
+      url = url.slice(0, TITLE_STRIP);
+      // could be 203 chars max here but should be fine
+      title = title ? title + ` [${url}]` : url;
+    }
   } else {
-    const fnoext = mp.get_property("filename/no-ext");
-    // don't change existing title for local file
+    const fnoext = mp.get_property("filename/no-ext", "").slice(0, TITLE_STRIP);
     title = title || fnoext;
-  }
-
-  if (title) {
-    title = title.slice(0, 200);
   }
 
   return title;
@@ -246,7 +252,9 @@ export function getMetadataTitle() {
 
 function get_metadata_flags() {
   const title = getMetadataTitle();
-  return title ? [`--oset-metadata=title=${title}`] : [];
+  // XXX: seems like no other way to escape arbitrary input in mpv.
+  // FIXME: does this work on Windows?
+  return title ? [`--oset-metadata=title=%${byteLength(title)}%${title}`] : [];
 }
 
 function apply_current_filters(filters: string[]) {
@@ -369,7 +377,7 @@ export function getOutPath(startTime: number, endTime: number) {
     dir = mp.utils.split_path(path)[0];
   }
 
-  const formatted_filename = format_filename(
+  const formatted_filename = formatFilename(
     startTime,
     endTime,
     getCurrentFormat()

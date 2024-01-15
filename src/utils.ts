@@ -1,6 +1,10 @@
 import type { Format } from "./formats";
 import options from "./options";
-import { StringMatchAll, StringEndsWith } from "./lib/polyfills";
+import {
+  StringMatchAll,
+  StringEndsWith,
+  StringStartsWith,
+} from "./lib/polyfills";
 
 function format_d(n: number) {
   return Math.floor(n) + "";
@@ -148,7 +152,7 @@ const REPLACE_FIRST: [RegExp, string][] = [
   [/%p/g, "%wH.%wM.%wS"],
   [/%P/g, "%wH.%wM.%wS.%wT"],
 ];
-export function format_filename(
+export function formatFilename(
   startTime: number,
   endTime: number,
   videoFormat: Format
@@ -346,4 +350,34 @@ export function get_pass_logfile_path(encode_out_path: string) {
 export function remove_file(_path: string) {
   // FIXME: implement via subprocess("rm", ...)?
   // FIXME: report to mpv
+}
+
+// TODO: keep only yt-dl video ID?
+export function stripProtocol(url: string | undefined) {
+  if (!url) return;
+  if (StringStartsWith(url, "http://")) {
+    url = url.slice(7);
+  } else if (StringStartsWith(url, "https://")) {
+    url = url.slice(8);
+  } else {
+    // ignore unknown protocol
+    return;
+  }
+  if (StringStartsWith(url, "www.")) {
+    url = url.slice(4);
+  }
+  return url;
+}
+
+// https://stackoverflow.com/a/23329386
+export function byteLength(str: string) {
+  // returns the byte length of an utf8 string
+  var s = str.length;
+  for (var i = str.length - 1; i >= 0; i--) {
+    var code = str.charCodeAt(i);
+    if (code > 0x7f && code <= 0x7ff) s++;
+    else if (code > 0x7ff && code <= 0xffff) s += 2;
+    if (code >= 0xdc00 && code <= 0xdfff) i--; //trail surrogate
+  }
+  return s;
 }
