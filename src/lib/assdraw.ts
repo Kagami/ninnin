@@ -1,3 +1,6 @@
+// Ported from:
+// https://github.com/mpv-player/mpv/blob/9267600/player/lua/assdraw.lua
+
 const c = 0.551915024494; // circle approximation
 
 export default class AssDraw {
