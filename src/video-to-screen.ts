@@ -54,8 +54,8 @@ export function get_video_dimensions() {
       const tmpw = Math.floor((window_h / dh) * dw);
       if (tmpw <= window_w) {
         fheight = window_h;
+        fwidth = tmpw;
       }
-      fwidth = tmpw;
     }
     let vo_panscan_area = window_h - fheight;
     let f_w = fwidth / fheight;
@@ -84,7 +84,7 @@ export function get_video_dimensions() {
       align: number,
       pan: number
     ) => {
-      scaled_src_size = Math.floor((scaled_src_size * 2) ^ zoom);
+      scaled_src_size = Math.floor(scaled_src_size * 2 ** zoom);
       align = (align + 1) / 2;
       let dst_start = Math.floor(
         (dst_size - scaled_src_size) * align + pan * scaled_src_size

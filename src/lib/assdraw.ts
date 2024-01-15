@@ -20,7 +20,7 @@ export default class AssDraw {
   }
 
   coord(x: number, y: number) {
-    const scale = 2 ^ (this.scale - 1);
+    const scale = 2 ** (this.scale - 1);
     const ix = Math.ceil(x * scale);
     const iy = Math.ceil(y * scale);
     this.text = `${this.text} ${ix} ${iy}`;
