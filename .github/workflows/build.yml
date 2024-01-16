@@ -23,6 +23,7 @@ jobs:
         run: npm run build
       - name: Release nightly
         uses: softprops/action-gh-release@v1
+        if: ${{ github.ref == 'refs/heads/master' }}
         with:
           prerelease: true
           name: nightly
