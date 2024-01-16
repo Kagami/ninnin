@@ -16,5 +16,5 @@ mp.add_key_binding(
 );
 mp.register_event("file-loaded", mainPage.setupStartAndEndTimes.bind(mainPage));
 
-mp.msg.verbose("Loaded ninnin script!");
+mp.msg.verbose("Loaded ninnin script");
 // emit_event("script-loaded");
