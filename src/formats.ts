@@ -112,13 +112,13 @@ class X265 extends X264 {
   }
 }
 
-const FF_QP2LAMBDA = 118;
 class HEVC_VTB extends Format {
   protected displayName = "hevc_vtb/aac_at";
   public videoCodec = "hevc_videotoolbox";
   public audioCodec = "aac";
   public outputExtension = "mp4";
   public twoPassSupported = false; // FIXME: check
+  private FF_QP2LAMBDA = 118;
 
   getVideoFlags() {
     return [
@@ -129,7 +129,7 @@ class HEVC_VTB extends Format {
   getVideoQualityFlags() {
     if (options.vtb_qscale < 0) return [];
     return [
-      `--ovcopts-add=global_quality=${options.vtb_qscale * FF_QP2LAMBDA}`,
+      `--ovcopts-add=global_quality=${options.vtb_qscale * this.FF_QP2LAMBDA}`,
       "--ovcopts-add=flags=+qscale",
     ];
   }
