@@ -4,7 +4,6 @@ const options = {
   // If empty, saves on the same directory of the playing video.
   // A starting "~" will be replaced by the home dir.
   output_directory: "~/Downloads", // FIXME: does it work everywhere?
-  run_detached: false,
   // Template string for the output file
   // %f - Filename, with extension
   // %F - Filename, without extension

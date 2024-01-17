@@ -1,3 +1,5 @@
+import type { MP } from "mpv.d.ts";
+
 import type { Format } from "./formats";
 import options from "./options";
 import {
@@ -70,11 +72,7 @@ function seconds_to_path_element(seconds: number, no_ms = false, full = false) {
   return time_string;
 }
 
-export function file_exists(name: string) {
-  return !!mp.utils.file_info(name);
-}
-
-// FIXME: check correctness
+// FIXME: use expand-properties instead?
 function expand_properties(text: string, magic = "$") {
   const re = new RegExp(
     "\\" + magic + "\\{([?!]?)(=?)([^}:]*)(:?)([^}]*)(\\}*)}",
@@ -146,6 +144,8 @@ function expand_properties(text: string, magic = "$") {
 //   throw new Error("not implemented");
 // }
 
+// FIXME: use expand-properties instead?
+// https://www.reddit.com/r/mpv/comments/tx1yp8/is_there_a_way_for_mpv_to_show_me_data_like_album/
 const REPLACE_FIRST: [RegExp, string][] = [
   [/%mp/g, "%mH.%mM.%mS"],
   [/%mP/g, "%mH.%mM.%mS.%mT"],
@@ -244,49 +244,14 @@ export function formatFilename(
   return `${filename}.${videoFormat.outputExtension}`;
 }
 
-export function parse_directory(dir: string) {
-  let home_dir = mp.utils.getenv("HOME");
-  if (!home_dir) {
-    // Windows home dir is obtained by USERPROFILE, or, if it fails, HOMEDRIVE + HOMEPATH
-    home_dir = mp.utils.getenv("USERPROFILE");
-  }
-
-  if (!home_dir) {
-    const drive = mp.utils.getenv("HOMEDRIVE");
-    const path = mp.utils.getenv("HOMEPATH");
-    if (drive && path) {
-      home_dir = mp.utils.join_path(drive, path);
-    } else {
-      mp.msg.warn("Couldn't find home dir.");
-      home_dir = "";
-    }
-  }
-
-  dir = dir.replace(/^~/, home_dir);
-  return dir;
-}
-
-// FIXME: is that reliable?
-function isWindows() {
-  return (mp.utils.getcwd() || "")[0] !== "/";
-}
-
-// function get_null_path() {
-//   if (file_exists("/dev/null")) {
-//     return "/dev/null";
-//   }
-//   return "NUL";
-// }
-
-// FIXME: mp.command_native
-export function run_subprocess(params: any) {
-  const res = mp.utils.subprocess(params);
+export function run_subprocess(params: MP.SubprocessArgs) {
+  const res = mp.command_native(params) as MP.SubprocessResult;
   mp.msg.verbose("Command stdout: ");
   mp.msg.verbose(res.stdout);
   if (res.status !== 0) {
     mp.msg.verbose(
       "Command failed! Reason: ",
-      res.error,
+      res.error_string,
       " Killed by us? ",
       res.killed_by_us ? "yes" : "no"
     );
@@ -295,42 +260,8 @@ export function run_subprocess(params: any) {
   return true;
 }
 
-function shell_escape(args: string[]) {
-  const ret: string[] = [];
-  for (const a of args) {
-    let s = a + "";
-    if (/[^A-Za-z0-9_/:=-]/.test(s)) {
-      // Single quotes for UNIX, double quotes for Windows.
-      if (isWindows()) {
-        s = '"' + s.replace(/"/g, '"\\""') + '"';
-      } else {
-        s = "'" + s.replace(/'/g, "'\\''") + "'";
-      }
-    }
-    ret.push(s);
-  }
-  let concat = ret.join(" ");
-  if (isWindows()) {
-    // Add a second set of double-quotes because idk it works
-    concat = '"' + concat + '"';
-  }
-  return concat;
-}
-
-// FIXME: port
-const isPopenAvailable = false;
-function lua_io_popen(_command_line: string): any {
-  throw new Error("not implemented");
-}
-
-export function run_subprocess_popen(command_line: string[]) {
-  let command_line_string = shell_escape(command_line);
-  // Redirect stderr to stdout, because for some reason
-  // the progress is outputted to stderr???
-  command_line_string += " 2>&1";
-  mp.msg.verbose(`run_subprocess_popen: running ${command_line_string}`);
-  return lua_io_popen(command_line_string);
-}
+// FIXME: remove
+export function run_subprocess_popen(_params: any): any {}
 
 export function calculate_scale_factor() {
   const baseResY = 720;
@@ -338,18 +269,8 @@ export function calculate_scale_factor() {
   return height / baseResY;
 }
 
-export function should_display_progress() {
-  if (!isPopenAvailable) return false;
-  return !isWindows();
-}
-
 export function get_pass_logfile_path(encode_out_path: string) {
   return `${encode_out_path}-video-pass1.log`;
-}
-
-export function remove_file(_path: string) {
-  // FIXME: implement via subprocess("rm", ...)?
-  // FIXME: report to mpv
 }
 
 // TODO: keep only yt-dl video ID?

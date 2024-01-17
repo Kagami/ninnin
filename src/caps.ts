@@ -1,4 +1,5 @@
-import type { MP } from "./lib/mpv";
+import type { MP } from "mpv.d.ts";
+
 import { ObjectAssign } from "./lib/polyfills";
 
 const DEFAULT_CAPS = {
