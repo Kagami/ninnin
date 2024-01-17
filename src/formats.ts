@@ -1,5 +1,5 @@
 import { getCaps } from "./caps";
-import { ObjectFromEntries } from "./lib/polyfills";
+import { ObjectFromEntries } from "./lib/helpers";
 import options from "./options";
 
 // A basic format class, which specifies some fields to be set by child classes.

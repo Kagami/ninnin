@@ -10,7 +10,7 @@ import {
   seconds_to_time_string,
   stripProtocol,
 } from "../utils";
-import { ObjectEntries, StringStartsWith } from "../lib/polyfills";
+import { ObjectEntries, StringStartsWith } from "../lib/helpers";
 
 interface ActiveTracks {
   video: MP.Track[];
@@ -366,7 +366,7 @@ export function getOutPath(startTime: number, endTime: number) {
   } else {
     if (isStream()) {
       // don't have file path for streams, so saving to HOME
-      dir = mp.utils.get_user_path("~");
+      dir = mp.utils.get_user_path("~/");
     } else {
       // save to the directory of the playing video it dir wasn't specified
       const path = mp.get_property("path")!;
@@ -419,10 +419,12 @@ export function buildCommand(
     return;
   }
 
-  const command = [
+  const args = [
     "mpv",
     livePath,
+    "--no-terminal",
     // FIXME: shift by 1ms to be frame exact
+    // FIXME: not needed if encoding full file?
     "--start=" + seconds_to_time_string(startTime, false, true),
     "--end=" + seconds_to_time_string(endTime, false, true),
     // When loop-file=inf, the encode won't end. Set this to override.
@@ -438,17 +440,17 @@ export function buildCommand(
     duration
   );
   if (hasVideoTrack) {
-    command.push(...format.getVideoFlags());
+    args.push(...format.getVideoFlags());
     // FIXME: CQ mode for libvpx/libaom
     if (vbitrate) {
-      command.push(`--ovcopts-add=b=${vbitrate}k`);
+      args.push(`--ovcopts-add=b=${vbitrate}k`);
     } else {
-      command.push(...format.getVideoQualityFlags());
+      args.push(...format.getVideoQualityFlags());
     }
   }
   if (hasAudioTrack) {
-    command.push(...format.getAudioFlags());
-    command.push(`--oacopts-add=b=${abitrate}k`);
+    args.push(...format.getAudioFlags());
+    args.push(`--oacopts-add=b=${abitrate}k`);
     // FIXME: do we need to downmix to stereo in case of e.g. 5.1 source?
     // command.push("--audio-channels=2");
   }
@@ -457,10 +459,10 @@ export function buildCommand(
   // Append selected tracks
   for (const [track_type, tracks] of ObjectEntries(supported_active_tracks)) {
     if (track_type === "audio") {
-      append_audio_tracks(command, tracks);
+      append_audio_tracks(args, tracks);
     } else {
       for (const track of tracks) {
-        append_track(command, track);
+        append_track(args, track);
       }
     }
   }
@@ -469,38 +471,38 @@ export function buildCommand(
     if (tracks.length) continue;
     switch (track_type) {
       case "video":
-        command.push("--vid=no");
+        args.push("--vid=no");
         break;
       case "audio":
-        command.push("--aid=no");
+        args.push("--aid=no");
         break;
       case "sub":
-        command.push("--sid=no");
+        args.push("--sid=no");
         break;
     }
   }
 
   if (hasVideoTrack) {
     // All those are only valid for video codecs.
-    command.push(...get_video_encode_flags(format, region));
+    args.push(...get_video_encode_flags(format, region));
   }
 
-  command.push(...format.getPostFlags());
+  args.push(...format.getPostFlags());
 
   if (options.write_metadata_title) {
-    command.push(...get_metadata_flags());
+    args.push(...get_metadata_flags());
   }
 
   // split the user-passed settings on whitespace
   if (options.additional_flags.trim()) {
-    command.push(...options.additional_flags.trim().split(/\s+/));
+    args.push(...options.additional_flags.trim().split(/\s+/));
   }
 
   const outPath = getOutPath(origStartTime, origEndTime);
-  command.push(`--o=${outPath}`);
+  args.push(`--o=${outPath}`);
 
   return {
-    command,
+    args,
     isLive,
     livePath,
     outPath,

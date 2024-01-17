@@ -1,6 +1,6 @@
 import AssDraw from "mpv-assdraw";
 
-import { ObjectEntries } from "../lib/polyfills";
+import { ObjectEntries } from "../lib/helpers";
 import { bold } from "../utils";
 import type { Region } from "../video-to-screen";
 import Page from "./page";

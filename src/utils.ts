@@ -6,7 +6,7 @@ import {
   StringMatchAll,
   StringEndsWith,
   StringStartsWith,
-} from "./lib/polyfills";
+} from "./lib/helpers";
 
 function format_d(n: number) {
   return Math.floor(n) + "";
@@ -259,9 +259,6 @@ export function run_subprocess(params: MP.SubprocessArgs) {
   }
   return true;
 }
-
-// FIXME: remove
-export function run_subprocess_popen(_params: any): any {}
 
 export function calculate_scale_factor() {
   const baseResY = 720;

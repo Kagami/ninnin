@@ -9,7 +9,7 @@
     "module": "ESNext",
     "moduleResolution": "node",
     "lib": ["ES5", "ES2015.Promise"],
-    "types": [],
+    "types": ["./src/lib/global"],
     // "allowSyntheticDefaultImports": true,
     // "esModuleInterop": true,
     // "isolatedModules": true,

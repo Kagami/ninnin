@@ -2,7 +2,7 @@ import AssDraw from "mpv-assdraw";
 
 import { formats } from "../formats";
 import options, { type Options } from "../options";
-import { ArrayEntries, ObjectFromEntries } from "../lib/polyfills";
+import { ArrayEntries, ObjectFromEntries } from "../lib/helpers";
 import { bold } from "../utils";
 import {
   type EncOption,

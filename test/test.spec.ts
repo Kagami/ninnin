@@ -40,9 +40,10 @@ test("getMetadataTitle", () => {
 
 test("buildCommand x264/aac", () => {
   const cmdRes = buildCommand(new Region(), START_TIME, END_TIME)!;
-  deepEqual(cmdRes.command, [
+  deepEqual(cmdRes.args, [
     "mpv",
     "/home/user/video.mp4",
+    "--no-terminal",
     "--start=0:00:01.417",
     "--end=0:00:03.042",
     "--loop-file=no",
@@ -71,7 +72,7 @@ test("buildCommand x264/aac", () => {
 test("buildCommand x264/aac_at", () => {
   enableVideoToolbox();
   const cmdRes = buildCommand(new Region(), START_TIME, END_TIME)!;
-  const cmd = cmdRes.command;
+  const cmd = cmdRes.args;
   deepEqual(cmd.includes("--oac=aac_at"), true, JSON.stringify(cmd));
 });
 
@@ -79,9 +80,10 @@ test("buildCommand x265/aac_at", () => {
   enableVideoToolbox();
   options.output_format = "x265";
   const cmdRes = buildCommand(new Region(), START_TIME, END_TIME)!;
-  deepEqual(cmdRes.command, [
+  deepEqual(cmdRes.args, [
     "mpv",
     "/home/user/video.mp4",
+    "--no-terminal",
     "--start=0:00:01.417",
     "--end=0:00:03.042",
     "--loop-file=no",
@@ -113,9 +115,10 @@ test("buildCommand hevc_vtb/aac_at", () => {
   enableVideoToolbox();
   options.output_format = "hevc_vtb";
   const cmdRes = buildCommand(new Region(), START_TIME, END_TIME)!;
-  deepEqual(cmdRes.command, [
+  deepEqual(cmdRes.args, [
     "mpv",
     "/home/user/video.mp4",
+    "--no-terminal",
     "--start=0:00:01.417",
     "--end=0:00:03.042",
     "--loop-file=no",

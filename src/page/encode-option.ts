@@ -1,6 +1,6 @@
 import type AssDraw from "mpv-assdraw";
 
-import { ArrayEntries } from "../lib/polyfills";
+import { ArrayEntries } from "../lib/helpers";
 import { bold } from "../utils";
 
 // If optType is a "bool" or an "int", @value is the boolean/integer value of the option.

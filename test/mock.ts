@@ -33,7 +33,7 @@ const mp = {
       return "/home/user";
     },
     get_user_path(path: string) {
-      return path.replace(/~/g, "/home/user");
+      return path.replace(/~\//g, "/home/user/");
     },
     // file_info(path) {
     //   return path === "/home/user/video.mp4" ? {} : null;

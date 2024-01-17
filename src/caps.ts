@@ -1,6 +1,6 @@
 import type { MP } from "mpv.d.ts";
 
-import { ObjectAssign } from "./lib/polyfills";
+import { ObjectAssign } from "./lib/helpers";
 
 const DEFAULT_CAPS = {
   has_hevc_videotoolbox: false,

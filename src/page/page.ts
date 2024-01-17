@@ -1,7 +1,7 @@
 import type AssDraw from "mpv-assdraw";
 
 import options from "../options";
-import { ObjectEntries } from "../lib/polyfills";
+import { ObjectEntries } from "../lib/helpers";
 import { calculate_scale_factor } from "../utils";
 
 export default class Page {
