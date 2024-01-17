@@ -17,6 +17,8 @@ jobs:
           cache: npm
       - name: Install deps
         run: npm ci
+      - name: Fix mpv.d.ts
+        run: curl -sLo node_modules/mpv.d.ts/mpv.d.ts https://github.com/Kagami/mpv.d.ts/raw/master/mpv.d.ts
       - name: Test
         run: npm test
       - name: Build

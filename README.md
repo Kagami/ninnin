@@ -27,4 +27,4 @@ TODO.
 
 ## License
 
-See [LICENSE](LICENSE). Many modules are based on [mpv-webm](https://github.com/ekisu/mpv-webm), ported from MoonScript to TypeScript.
+See [LICENSE](LICENSE). Initial code ported from [mpv-webm](https://github.com/ekisu/mpv-webm) (MoonScript) to TypeScript.
