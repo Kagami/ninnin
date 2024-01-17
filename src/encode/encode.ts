@@ -1,18 +1,18 @@
 import AssDraw from "mpv-assdraw";
 
-import Page from "./page/page";
+import Page from "../page/page";
 import {
   bold,
   get_pass_logfile_path,
   message,
   run_subprocess,
   run_subprocess_popen,
-} from "./utils";
-import options from "./options";
-import { type Format, getCurrentFormat } from "./formats";
-import { type Region } from "./video-to-screen";
-import { buildCommand } from "./encode-cmd";
-import { remove_file } from "./os";
+} from "../utils";
+import options from "../options";
+import { type Format, getCurrentFormat } from "../formats";
+import { type Region } from "../video-to-screen";
+import { buildCommand } from "./cmd";
+import { remove_file } from "../os";
 
 // Not really a Page, but reusing its functions is pretty useful
 export default class EncodeWithProgress extends Page {

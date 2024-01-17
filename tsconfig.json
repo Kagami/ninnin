@@ -8,7 +8,7 @@
     "target": "ES5",
     "module": "ESNext",
     "moduleResolution": "node",
-    "lib": ["ES5"],
+    "lib": ["ES5", "ES2015.Promise"],
     "types": [],
     // "allowSyntheticDefaultImports": true,
     // "esModuleInterop": true,

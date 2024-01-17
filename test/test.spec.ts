@@ -3,7 +3,7 @@ import { deepEqual } from "node:assert/strict";
 
 import { byteLength, formatFilename } from "../src/utils";
 import { formatByName } from "../src/formats";
-import { buildCommand, getMetadataTitle } from "../src/encode-cmd";
+import { buildCommand, getMetadataTitle } from "../src/encode/cmd";
 import { Region } from "../src/video-to-screen";
 
 import { setMock, enableVideoToolbox, resetOpts, setFile } from "./mock";

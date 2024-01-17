@@ -29,7 +29,8 @@
   },
   "homepage": "https://github.com/Kagami/ninnin#readme",
   "dependencies": {
-    "mpv-assdraw": "^0.1.0"
+    "mpv-assdraw": "^0.1.0",
+    "mpv-promise": "^0.1.0"
   },
   "devDependencies": {
     "@swc-node/register": "^1.6.8",
