@@ -37,7 +37,7 @@ export function bold(text: string) {
 
 // OSD message, using ass.
 export function message(text: string, duration?: number) {
-  let ass = mp.get_property_osd("osd-ass-cc/0");
+  let ass = mp.get_property_osd("osd-ass-cc/0", "");
   // wanted to set font size here, but it's completely unrelated to the font
   // size in set_osd_ass.
   ass += text;
@@ -262,7 +262,7 @@ export function run_subprocess(params: MP.SubprocessArgs) {
 
 export function calculate_scale_factor() {
   const baseResY = 720;
-  const { height } = mp.get_osd_size();
+  const { height } = mp.get_osd_size()!;
   return height / baseResY;
 }
 

@@ -10,7 +10,7 @@ export function getPlatform() {
   return platform;
 }
 
-// FIXME: lacks in mp.utils, report to mpv
+// FIXME: lacks in mp.utils: https://github.com/mpv-player/mpv/issues/13305
 export function remove_file(path: string) {
   if (getPlatform() === "windows") {
     mp.command_native({

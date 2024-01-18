@@ -32,7 +32,7 @@ export default class MainPage extends Page {
   }
 
   setStartTime() {
-    this.startTime = mp.get_property_number("time-pos");
+    this.startTime = mp.get_property_number("time-pos", 0);
     if (this.visible) {
       this.clear();
       this.draw();
@@ -40,7 +40,7 @@ export default class MainPage extends Page {
   }
 
   setEndTime() {
-    this.endTime = mp.get_property_number("time-pos");
+    this.endTime = mp.get_property_number("time-pos", 0);
     if (this.visible) {
       this.clear();
       this.draw();
@@ -48,11 +48,11 @@ export default class MainPage extends Page {
   }
 
   jumpToStartTime() {
-    mp.set_property("time-pos", this.startTime);
+    mp.set_property_number("time-pos", this.startTime);
   }
 
   jumpToEndTime() {
-    mp.set_property("time-pos", this.endTime);
+    mp.set_property_number("time-pos", this.endTime);
   }
 
   setupStartAndEndTimes() {
@@ -61,7 +61,7 @@ export default class MainPage extends Page {
       // could cause the beginning of the video to not be at 0. Not sure how this
       // would affect this code.
       this.startTime = 0;
-      this.endTime = mp.get_property_native("duration");
+      this.endTime = mp.get_property_number("duration", 0);
     } else {
       this.startTime = -1;
       this.endTime = -1;
@@ -74,7 +74,7 @@ export default class MainPage extends Page {
   }
 
   draw() {
-    const { width: window_w, height: window_h } = mp.get_osd_size();
+    const { width: window_w, height: window_h } = mp.get_osd_size()!;
     const ass = new AssDraw();
     ass.new_event();
     this.setup_text(ass);

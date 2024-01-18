@@ -62,7 +62,7 @@ export default class Page {
   }
 
   clear() {
-    const { width: window_w, height: window_h } = mp.get_osd_size();
+    const { width: window_w, height: window_h } = mp.get_osd_size()!;
     mp.set_osd_ass(window_w, window_h, "");
     mp.osd_message("", 0);
   }

@@ -1,3 +1,5 @@
+import type { MP } from "mpv.d.ts";
+
 interface Point {
   x: number;
   y: number;
@@ -26,13 +28,15 @@ export function get_video_dimensions() {
   if (!dimensions_changed) return _video_dimensions;
 
   // this function is very much ripped from video/out/aspect.c in mpv's source
-  const video_params = mp.get_property_native("video-out-params");
+  const video_params = mp.get_property_native(
+    "video-out-params"
+  ) as MP.VideoParams;
   if (!video_params) return;
 
   dimensions_changed = false;
   const keep_aspect = mp.get_property_bool("keepaspect");
   let { w, h, dw, dh } = video_params;
-  if (mp.get_property_number("video-rotate") % 180 === 90) {
+  if (mp.get_property_number("video-rotate", 0) % 180 === 90) {
     [w, h] = [h, w];
     [dw, dh] = [dh, dw];
   }
@@ -42,11 +46,11 @@ export function get_video_dimensions() {
     bottom_right: { x: -1, y: -1 },
     ratios: { w: -1, h: -1 },
   };
-  const { width: window_w, height: window_h } = mp.get_osd_size();
+  const { width: window_w, height: window_h } = mp.get_osd_size()!;
 
   if (keep_aspect) {
     const unscaled = mp.get_property_native("video-unscaled");
-    const panscan = mp.get_property_number("panscan");
+    const panscan = mp.get_property_number("panscan", 0);
 
     let fwidth = window_w;
     let fheight = Math.floor((window_w / dw) * dh);
@@ -101,15 +105,15 @@ export function get_video_dimensions() {
       return [dst_start, dst_end];
     };
 
-    const zoom = mp.get_property_number("video-zoom");
+    const zoom = mp.get_property_number("video-zoom", 0);
 
-    const align_x = mp.get_property_number("video-align-x");
-    const pan_x = mp.get_property_number("video-pan-x");
+    const align_x = mp.get_property_number("video-align-x", 0);
+    const pan_x = mp.get_property_number("video-pan-x", 0);
     [_video_dimensions.top_left.x, _video_dimensions.bottom_right.x] =
       split_scaling(window_w, scaled_width, zoom, align_x, pan_x);
 
-    const align_y = mp.get_property_number("video-align-y");
-    const pan_y = mp.get_property_number("video-pan-y");
+    const align_y = mp.get_property_number("video-align-y", 0);
+    const pan_y = mp.get_property_number("video-pan-y", 0);
     [_video_dimensions.top_left.y, _video_dimensions.bottom_right.y] =
       split_scaling(window_h, scaled_height, zoom, align_y, pan_y);
   } else {

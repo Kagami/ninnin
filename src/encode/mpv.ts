@@ -2,7 +2,7 @@ import { remove_file } from "../os";
 
 export class MPVEncode {
   private logPath: string;
-  private asyncID = 0;
+  private asyncID: unknown;
   private waitPromise: Promise<void>;
 
   constructor(args: string[], outPath: string) {
@@ -57,6 +57,6 @@ export class MPVEncode {
     if (this.asyncID) {
       mp.abort_async_command(this.asyncID);
     }
-    this.asyncID = 0;
+    this.asyncID = null;
   }
 }

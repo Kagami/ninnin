@@ -1,3 +1,4 @@
+import type { MP } from "mpv.d.ts";
 import AssDraw from "mpv-assdraw";
 
 import { bold } from "../utils";
@@ -49,7 +50,9 @@ export default class CropPage extends Page {
   }
 
   setPointA() {
-    const { x: posX, y: posY } = mp.get_mouse_pos();
+    const { x: posX, y: posY } = mp.get_property_native(
+      "mouse-pos"
+    ) as MP.MousePos;
     this.pointA.set_from_screen(posX, posY);
     if (this.visible) {
       // No need to clear, as we draw the entire OSD (also it causes flickering)
@@ -58,7 +61,9 @@ export default class CropPage extends Page {
   }
 
   setPointB() {
-    const { x: posX, y: posY } = mp.get_mouse_pos();
+    const { x: posX, y: posY } = mp.get_property_native(
+      "mouse-pos"
+    ) as MP.MousePos;
     this.pointB.set_from_screen(posX, posY);
     if (this.visible) {
       this.draw();
@@ -109,7 +114,7 @@ export default class CropPage extends Page {
   }
 
   draw() {
-    const { width: window_w, height: window_h } = mp.get_osd_size();
+    const { width: window_w, height: window_h } = mp.get_osd_size()!;
     const width = Math.abs(this.pointA.x - this.pointB.x);
     const height = Math.abs(this.pointA.y - this.pointB.y);
 

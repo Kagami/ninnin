@@ -126,9 +126,9 @@ function get_fps_filters() {
 }
 
 function get_contrast_brightness_and_saturation_filters() {
-  const mpv_brightness = mp.get_property_native("brightness");
-  const mpv_contrast = mp.get_property_native("contrast");
-  const mpv_saturation = mp.get_property_native("saturation");
+  const mpv_brightness = mp.get_property_number("brightness", 0);
+  const mpv_contrast = mp.get_property_number("contrast", 0);
+  const mpv_saturation = mp.get_property_number("saturation", 0);
 
   if (mpv_brightness === 0 && mpv_contrast === 0 && mpv_saturation === 0) {
     // Default values, no need to change anything.
@@ -253,7 +253,7 @@ function get_metadata_flags() {
 }
 
 function apply_current_filters(filters: string[]) {
-  const vf = mp.get_property_native("vf");
+  const vf = mp.get_property_native("vf") as MP.Filter[];
   mp.msg.verbose(`apply_current_filters: got ${vf.length} currently applied.`);
   for (const filter of vf) {
     mp.msg.verbose(`apply_current_filters: filter name: ${filter.name}`);

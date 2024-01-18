@@ -200,7 +200,7 @@ export default class EncodeOptionsPage extends Page {
   }
 
   draw() {
-    const { width: window_w, height: window_h } = mp.get_osd_size();
+    const { width: window_w, height: window_h } = mp.get_osd_size()!;
     const ass = new AssDraw();
     ass.new_event();
     this.setup_text(ass);
