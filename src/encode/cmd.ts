@@ -12,10 +12,11 @@ import {
 } from "../utils";
 import { ObjectEntries, StringStartsWith } from "../lib/helpers";
 
+type Track = MP.Prop.Track;
 interface ActiveTracks {
-  video: MP.Track[];
-  audio: MP.Track[];
-  sub: MP.Track[];
+  video: Track[];
+  audio: Track[];
+  sub: Track[];
 }
 
 function get_active_tracks() {
@@ -29,7 +30,7 @@ function get_active_tracks() {
     audio: [],
     sub: [],
   };
-  for (const track of mp.get_property_native("track-list") as MP.Track[]) {
+  for (const track of mp.get_property_native("track-list") as Track[]) {
     const trType = track.type as keyof typeof accepted;
     if (track.selected && accepted[trType]) {
       active[trType].push(track);
@@ -54,7 +55,7 @@ function filter_tracks_supported_by_format(
   return supported;
 }
 
-function append_track(out: string[], track: MP.Track) {
+function append_track(out: string[], track: Track) {
   const external_flag = {
     audio: "audio-file",
     sub: "sub-file",
@@ -77,12 +78,12 @@ function append_track(out: string[], track: MP.Track) {
   }
 }
 
-function append_audio_tracks(out: string[], tracks: MP.Track[]) {
+function append_audio_tracks(out: string[], tracks: Track[]) {
   // Some additional logic is needed for audio tracks because it seems
   // multiple active audio tracks are a thing? We probably only can reliably
   // use internal tracks for this so, well, we keep track of them and see if
   // more than one is active.
-  const internal_tracks: MP.Track[] = [];
+  const internal_tracks: Track[] = [];
 
   for (const track of tracks) {
     if (track.external) {
@@ -199,7 +200,7 @@ function get_playback_options() {
 
 function get_speed_flags() {
   const ret: string[] = [];
-  const speed = mp.get_property_native("speed");
+  const speed = mp.get_property_number("speed", 1);
   if (speed !== 1) {
     ret.push(
       `--vf-add=setpts=PTS/${speed}`,
@@ -253,7 +254,7 @@ function get_metadata_flags() {
 }
 
 function apply_current_filters(filters: string[]) {
-  const vf = mp.get_property_native("vf") as MP.Filter[];
+  const vf = mp.get_property_native("vf") as MP.Prop.Filter[];
   mp.msg.verbose(`apply_current_filters: got ${vf.length} currently applied.`);
   for (const filter of vf) {
     mp.msg.verbose(`apply_current_filters: filter name: ${filter.name}`);

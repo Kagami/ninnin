@@ -30,7 +30,7 @@ export function get_video_dimensions() {
   // this function is very much ripped from video/out/aspect.c in mpv's source
   const video_params = mp.get_property_native(
     "video-out-params"
-  ) as MP.VideoParams;
+  ) as MP.Prop.VideoParams;
   if (!video_params) return;
 
   dimensions_changed = false;
@@ -49,7 +49,9 @@ export function get_video_dimensions() {
   const { width: window_w, height: window_h } = mp.get_osd_size()!;
 
   if (keep_aspect) {
-    const unscaled = mp.get_property_native("video-unscaled");
+    const unscaled = mp.get_property_native("video-unscaled") as
+      | boolean
+      | string;
     const panscan = mp.get_property_number("panscan", 0);
 
     let fwidth = window_w;

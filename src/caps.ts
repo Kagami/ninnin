@@ -14,7 +14,7 @@ let capsInited = false;
 
 function initCaps() {
   if (capsInited) return;
-  const encoders = mp.get_property_native("encoder-list") as MP.Encoder[];
+  const encoders = mp.get_property_native("encoder-list") as MP.Prop.Encoder[];
   for (const enc of encoders) {
     if (enc.driver === "hevc_videotoolbox") {
       caps.has_hevc_videotoolbox = true;

@@ -107,18 +107,23 @@ const mp = {
         ];
       case "vf":
         return [];
-      case "brightness":
-      case "contrast":
-      case "saturation":
-        return 0;
-      case "speed":
-        return 1;
       case "encoder-list":
         return videoToolboxEnabled
           ? [{ driver: "hevc_videotoolbox" }, { driver: "aac_at" }]
           : [];
     }
     throw new Error("get_property_native: " + prop);
+  },
+  get_property_number(prop) {
+    switch (prop) {
+      case "brightness":
+      case "contrast":
+      case "saturation":
+        return 0;
+      case "speed":
+        return 1;
+    }
+    throw new Error("get_property_number: " + prop);
   },
   get_property_bool(prop) {
     switch (prop) {

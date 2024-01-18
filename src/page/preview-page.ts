@@ -40,7 +40,7 @@ export default class PreviewPage extends Page {
   }
 
   prepare() {
-    const vf = mp.get_property_native("vf") as MP.Filter[];
+    const vf = mp.get_property_native("vf") as MP.Prop.Filter[];
     // Place sub rendering before crop in the filter chain.
     vf.push({ name: "sub" });
     if (this.region.is_valid()) {

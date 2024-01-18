@@ -52,7 +52,7 @@ export default class CropPage extends Page {
   setPointA() {
     const { x: posX, y: posY } = mp.get_property_native(
       "mouse-pos"
-    ) as MP.MousePos;
+    ) as MP.Prop.MousePos;
     this.pointA.set_from_screen(posX, posY);
     if (this.visible) {
       // No need to clear, as we draw the entire OSD (also it causes flickering)
@@ -63,7 +63,7 @@ export default class CropPage extends Page {
   setPointB() {
     const { x: posX, y: posY } = mp.get_property_native(
       "mouse-pos"
-    ) as MP.MousePos;
+    ) as MP.Prop.MousePos;
     this.pointB.set_from_screen(posX, posY);
     if (this.visible) {
       this.draw();

@@ -176,13 +176,13 @@ export function formatFilename(
     [/%ms/g, format_d(Math.floor(endTime))],
     [/%mf/g, format_d(endTime)],
     [/%mT/g, format_3f(endTime % 1).slice(2)],
-    [/%f/g, mp.get_property("filename")!],
-    [/%F/g, mp.get_property("filename/no-ext")!],
+    [/%f/g, mp.get_property("filename", "")],
+    [/%F/g, mp.get_property("filename/no-ext", "")],
     [/%s/g, seconds_to_path_element(startTime)],
     [/%S/g, seconds_to_path_element(startTime, true)],
     [/%e/g, seconds_to_path_element(endTime)],
     [/%E/g, seconds_to_path_element(endTime, true)],
-    [/%T/g, mp.get_property("media-title")!],
+    [/%T/g, mp.get_property("media-title", "")],
     [
       /%M/g,
       mp.get_property_native("aid") &&
@@ -244,8 +244,8 @@ export function formatFilename(
   return `${filename}.${videoFormat.outputExtension}`;
 }
 
-export function run_subprocess(params: MP.SubprocessArgs) {
-  const res = mp.command_native(params) as MP.SubprocessResult;
+export function run_subprocess(params: MP.Cmd.SubprocessArgs) {
+  const res = mp.command_native(params) as MP.Cmd.SubprocessResult;
   mp.msg.verbose("Command stdout: ");
   mp.msg.verbose(res.stdout);
   if (res.status !== 0) {
