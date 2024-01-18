@@ -3,7 +3,7 @@ import AssDraw from "mpv-assdraw";
 import Page from "../page/page";
 import { bold, get_pass_logfile_path, message, run_subprocess } from "../utils";
 import options from "../options";
-import { type Format, getCurrentFormat } from "../formats";
+import { type Format, getCurrentFormat } from "./formats";
 import { type Region } from "../video-to-screen";
 import { buildCommand } from "./cmd";
 import { remove_file } from "../os";

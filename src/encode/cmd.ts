@@ -1,16 +1,11 @@
 import type { MP } from "mpv.d.ts";
 
-import { type Format, getCurrentFormat } from "../formats";
+import { type Format, getCurrentFormat } from "./formats";
 import type { Region } from "../video-to-screen";
 import options from "../options";
-import {
-  byteLength,
-  formatFilename,
-  message,
-  seconds_to_time_string,
-  stripProtocol,
-} from "../utils";
+import { byteLength, message, stripProtocol } from "../utils";
 import { ObjectEntries, StringStartsWith } from "../lib/helpers";
+import { formatFilename, seconds_to_time_string } from "../pretty";
 
 type Track = MP.Prop.Track;
 interface ActiveTracks {

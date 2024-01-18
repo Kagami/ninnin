@@ -1,13 +1,14 @@
 import { test, before, beforeEach } from "node:test";
 import { deepEqual } from "node:assert/strict";
 
-import { byteLength, formatFilename } from "../src/utils";
-import { formatByName } from "../src/formats";
+import options from "../src/options";
+import { byteLength } from "../src/utils";
+import { formatByName } from "../src/encode/formats";
 import { buildCommand, getMetadataTitle } from "../src/encode/cmd";
 import { Region } from "../src/video-to-screen";
+import { formatFilename } from "../src/pretty";
 
 import { setMock, enableVideoToolbox, resetOpts, setFile } from "./mock";
-import options from "../src/options";
 
 const START_TIME = 1.41708333333333;
 const END_TIME = 3.0427083333333;

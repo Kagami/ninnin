@@ -1,6 +1,6 @@
 import AssDraw from "mpv-assdraw";
 
-import { formats } from "../formats";
+import { formats } from "../encode/formats";
 import options, { type Options } from "../options";
 import { ArrayEntries, ObjectFromEntries } from "../lib/helpers";
 import { bold } from "../utils";

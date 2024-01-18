@@ -7,8 +7,9 @@ import EncodeOptionsPage from "./encode-options-page";
 import { getMetadataTitle, getOutPath } from "../encode/cmd";
 import { doEncode } from "../encode/encode";
 import { Region } from "../video-to-screen";
-import { bold, message, seconds_to_time_string } from "../utils";
+import { bold, message } from "../utils";
 import options from "../options";
+import { seconds_to_time_string } from "../pretty";
 
 export default class MainPage extends Page {
   private startTime = -1;
