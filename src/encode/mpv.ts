@@ -1,5 +1,13 @@
+import type { MP } from "mpv.d.ts";
+
 import type { Stats } from "./script";
 import { remove_file } from "../os";
+
+const CANCEL_MSG = "ninnin-cancel";
+
+export function isCancelled(err: unknown) {
+  return err ? (err as Error).message === CANCEL_MSG : false;
+}
 
 export class MPVEncode {
   private logPath: string;
@@ -23,10 +31,17 @@ export class MPVEncode {
     this.waitPromise = new Promise((resolve, reject) => {
       this.asyncID = mp.command_native_async(
         { name: "subprocess", args, playback_only: false },
-        (success, _result, error) => {
+        (success, result, error) => {
+          // FIXME: cleanup on player quit?
           remove_file(this.logPath);
-          // mp.msg.info("@@@ subprocess", JSON.stringify([success, result, error]));
           if (!success) return reject(new Error(error));
+          const res = result as MP.Cmd.SubprocessResult;
+          if (res.status !== 0) {
+            const msg = res.killed_by_us
+              ? CANCEL_MSG
+              : `${res.error_string} (code ${res.status})`;
+            return reject(new Error(msg));
+          }
           resolve();
         }
       );
@@ -50,10 +65,10 @@ export class MPVEncode {
     return this.waitPromise;
   }
 
-  abort() {
+  cancel() {
     if (this.asyncID) {
       mp.abort_async_command(this.asyncID);
     }
-    this.asyncID = null;
+    this.asyncID = undefined;
   }
 }

@@ -1,12 +1,12 @@
 import Ass from "../ass";
 import Page from "../page/page";
-import { get_pass_logfile_path, message } from "../utils";
+import { getErrMsg, get_pass_logfile_path, message } from "../utils";
 import options from "../options";
 import { type Format, getCurrentFormat } from "./formats";
 import { type Region } from "../video-to-screen";
 import { buildCommand } from "./cmd";
 import { remove_file } from "../os";
-import { MPVEncode } from "./mpv";
+import { MPVEncode, isCancelled } from "./mpv";
 import { seconds_to_time_string } from "../pretty";
 
 // Not really a Page, but reusing its functions is pretty useful
@@ -18,6 +18,9 @@ export default class EncodeWithProgress extends Page {
 
   constructor(private startTime: number, private endTime: number) {
     super();
+    this.keybinds = {
+      ESC: this.cancel.bind(this),
+    };
   }
 
   private getStatus() {
@@ -47,6 +50,8 @@ export default class EncodeWithProgress extends Page {
     const status = this.getStatus() || "N/A";
     ass.append_nl(`Output: ${this.outPath}`);
     ass.append_nl(`Encoding${passInfo}: ${status}`);
+    ass.append_nl();
+    ass.append_nl(`${ass.bold("ESC:")} cancel encoding`);
     mp.set_osd_ass(window_w, window_h, ass.text);
   }
 
@@ -68,11 +73,51 @@ export default class EncodeWithProgress extends Page {
       this.hide();
     }
   }
+
+  cancel() {
+    if (this.mpv) {
+      this.mpv.cancel();
+    }
+  }
 }
 
 function shouldTwoPass(format: Format) {
   if (options.target_filesize) return format.twoPassSupported;
   return format.twoPassPreferable;
+}
+
+function showErrorMsg(err: unknown) {
+  if (isCancelled(err)) {
+    message("Encode cancelled");
+  } else {
+    message("Encode failed: " + getErrMsg(err));
+    mp.msg.error(err);
+  }
+}
+
+async function encodeInner(
+  startTime: number,
+  endTime: number,
+  format: Format,
+  args: string[],
+  outPath: string
+) {
+  const ewp = new EncodeWithProgress(startTime, endTime);
+  let pass = 0; // no 2pass
+
+  if (shouldTwoPass(format)) {
+    pass = 1; // first pass
+    const argsPass1 = args.slice();
+    argsPass1.push("--ovcopts-add=flags=+pass1");
+    // FIXME: encode 1pass to /dev/null
+    await ewp.startEncode(pass, argsPass1, outPath);
+
+    pass = 2; // second pass
+    args.push("--ovcopts-add=flags=+pass2");
+  }
+
+  await ewp.startEncode(pass, args, outPath);
+  message("Encoded successfully!");
 }
 
 export async function doEncode(
@@ -83,60 +128,25 @@ export async function doEncode(
   const cmdRes = buildCommand(region, origStartTime, origEndTime);
   if (!cmdRes) return;
   const { args, isLive, livePath, outPath, startTime, endTime } = cmdRes;
-
-  // emit_event("encode-started");
-
-  const ewp = new EncodeWithProgress(startTime, endTime);
   const format = getCurrentFormat();
-  let pass = 0; // no 2pass
-
-  // NOTE: mpv-webm doesn't do two pass for streams, but seems like it should work just fine?
-  // In case of local file: works
-  // In case of remote URL: works
-  // In case of live stream: we dump it to a temporary file, so it works
-  if (shouldTwoPass(format)) {
-    pass = 1; // first pass
-    const argsPass1 = args.slice();
-    argsPass1.push("--ovcopts-add=flags=+pass1");
-
-    try {
-      // FIXME: encode 1pass to /dev/null
-      await ewp.startEncode(pass, argsPass1, outPath);
-    } catch (err) {
-      message("Encode failed: " + (err as Error).message);
-      mp.msg.error(err);
-      // emit_event("encode-finished", "fail");
-      return;
-    }
-
-    // if (format.videoCodec === "libvpx") {
-    //   // We need to patch the pass log file before running the second pass.
-    //   mp.msg.verbose("Patching libvpx pass log file...");
-    //   vp8_patch_logfile(get_pass_logfile_path(out_path), endTime - startTime);
-    // }
-
-    pass = 2; // second pass
-    args.push("--ovcopts-add=flags=+pass2");
-  }
-
-  // command = format.postCommandModifier(command, region, startTime, endTime)
 
   try {
-    await ewp.startEncode(pass, args, outPath);
+    // emit_event("encode-started");
+    await encodeInner(startTime, endTime, format, args, outPath);
     message("Encoded successfully!");
     // emit_event("encode-finished", "success");
   } catch (err) {
-    message("Encode failed: " + (err as Error).message);
-    mp.msg.error(err);
     // emit_event("encode-finished", "fail");
-  }
-
-  // Clean up pass log file.
-  if (shouldTwoPass(format)) {
-    remove_file(get_pass_logfile_path(outPath));
-  }
-  // Clean up dumped stream cache.
-  if (isLive) {
-    remove_file(livePath);
+    showErrorMsg(err);
+  } finally {
+    // FIXME: cleanup on player quit?
+    // Clean up pass log file.
+    if (shouldTwoPass(format)) {
+      remove_file(get_pass_logfile_path(outPath));
+    }
+    // Clean up dumped stream cache.
+    if (isLive) {
+      remove_file(livePath);
+    }
   }
 }

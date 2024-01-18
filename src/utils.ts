@@ -1,6 +1,10 @@
 import options from "./options";
 import { StringStartsWith } from "./lib/helpers";
 
+export function getErrMsg(err: unknown) {
+  return err && (err as Error).message ? (err as Error).message : String(err);
+}
+
 // OSD message, using ass.
 export function message(text: string, duration?: number) {
   let ass = mp.get_property_osd("osd-ass-cc/0", "");
