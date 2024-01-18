@@ -1,7 +1,5 @@
-import type AssDraw from "mpv-assdraw";
-
 import { ArrayEntries } from "../lib/helpers";
-import { bold } from "../utils";
+import type Ass from "../ass";
 
 // If optType is a "bool" or an "int", @value is the boolean/integer value of the option.
 // Additionally, when optType is an "int":
@@ -22,14 +20,14 @@ export class EncOption<T, O> {
   protected value: T;
   protected opts: O;
   protected displayText: string;
-  protected visibleCheckFn: (() => boolean) | null;
+  protected visibleCheckFn?: () => boolean;
   protected index = 0;
 
   constructor(
     displayText: string,
     value: T,
     opts: O,
-    visibleCheckFn: (() => boolean) | null = null
+    visibleCheckFn?: () => boolean
   ) {
     this.displayText = displayText;
     this.opts = opts;
@@ -58,9 +56,9 @@ export class EncOption<T, O> {
     return "";
   }
 
-  draw(ass: AssDraw, selected: boolean) {
+  draw(ass: Ass, selected: boolean) {
     if (selected) {
-      ass.append(`${bold(this.displayText)}: `);
+      ass.append(`${ass.bold(this.displayText)}: `);
     } else {
       ass.append(`${this.displayText}: `);
     }
@@ -73,7 +71,7 @@ export class EncOption<T, O> {
     if (this.hasNext()) {
       ass.append(" ▶");
     }
-    ass.append("\\N");
+    ass.append_nl();
   }
 
   // Check if this option should be visible by calling its visibleCheckFn

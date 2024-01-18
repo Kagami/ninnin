@@ -1,13 +1,12 @@
-import type AssDraw from "mpv-assdraw";
-
 import options from "../options";
 import { ObjectEntries } from "../lib/helpers";
 import { calculate_scale_factor } from "../utils";
+import type Ass from "../ass";
 
 export default class Page {
   protected keybinds: { [key: string]: () => void } | undefined;
   protected visible = false;
-  private sizeCallback: (() => void) | null = null;
+  private sizeCallback?: () => void;
 
   // abstract
   draw() {}
@@ -58,7 +57,7 @@ export default class Page {
     if (this.sizeCallback) {
       mp.unobserve_property(this.sizeCallback);
     }
-    this.sizeCallback = null;
+    this.sizeCallback = undefined;
   }
 
   clear() {
@@ -88,7 +87,7 @@ export default class Page {
     this.dispose();
   }
 
-  setup_text(ass: AssDraw) {
+  setup_text(ass: Ass) {
     const scale = calculate_scale_factor();
     const margin = options.margin * scale;
     ass.append("{\\an7}");

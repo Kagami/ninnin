@@ -1,9 +1,8 @@
 import type { MP } from "mpv.d.ts";
-import AssDraw from "mpv-assdraw";
 
-import { bold } from "../utils";
 import { Region, VideoPoint, get_video_dimensions } from "../video-to-screen";
 import Page from "./page";
+import Ass from "../ass";
 
 export type CropCallbackFn = (
   updated: boolean,
@@ -82,7 +81,7 @@ export default class CropPage extends Page {
     this.callback(true, region);
   }
 
-  draw_box(ass: AssDraw) {
+  draw_box(ass: Ass) {
     const region = new Region();
     region.set_from_points(this.pointA.to_screen(), this.pointB.to_screen());
 
@@ -118,18 +117,18 @@ export default class CropPage extends Page {
     const width = Math.abs(this.pointA.x - this.pointB.x);
     const height = Math.abs(this.pointA.y - this.pointB.y);
 
-    const ass = new AssDraw();
+    const ass = new Ass();
     this.draw_box(ass);
     ass.new_event();
     this.setup_text(ass);
     // prettier-ignore
     {
-    ass.append(`${bold('Crop:')}\\N`);
-    ass.append(`${bold('1:')} change point A (${this.pointA.x}, ${this.pointA.y})\\N`);
-    ass.append(`${bold('2:')} change point B (${this.pointB.x}, ${this.pointB.y})\\N`);
-    ass.append(`${bold('r:')} reset to whole screen\\N`);
-    ass.append(`${bold('ESC:')} cancel crop\\N`);
-    ass.append(`${bold('ENTER:')} confirm crop (${width}x${height})\\N`);
+    ass.append_nl(`${ass.bold('Crop:')}`);
+    ass.append_nl(`${ass.bold('1:')} change point A (${this.pointA.x}, ${this.pointA.y})`);
+    ass.append_nl(`${ass.bold('2:')} change point B (${this.pointB.x}, ${this.pointB.y})`);
+    ass.append_nl(`${ass.bold('r:')} reset to whole screen`);
+    ass.append_nl(`${ass.bold('ESC:')} cancel crop`);
+    ass.append_nl(`${ass.bold('ENTER:')} confirm crop (${width}x${height})`);
     }
     mp.set_osd_ass(window_w, window_h, ass.text);
   }

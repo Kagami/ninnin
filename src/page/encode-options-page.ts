@@ -1,9 +1,6 @@
-import AssDraw from "mpv-assdraw";
-
 import { formats } from "../encode/formats";
 import options, { type Options } from "../options";
 import { ArrayEntries, ObjectFromEntries } from "../lib/helpers";
-import { bold } from "../utils";
 import {
   type EncOption,
   EncOptionBool,
@@ -12,6 +9,7 @@ import {
   type EncOptionListOpts as ListOpts,
 } from "./encode-option";
 import Page from "./page";
+import Ass from "../ass";
 
 export default class EncodeOptionsPage extends Page {
   private currentOption = 0;
@@ -201,19 +199,19 @@ export default class EncodeOptionsPage extends Page {
 
   draw() {
     const { width: window_w, height: window_h } = mp.get_osd_size()!;
-    const ass = new AssDraw();
+    const ass = new Ass();
     ass.new_event();
     this.setup_text(ass);
-    ass.append(`${bold("ninnin options")}\\N\\N`);
+    ass.append_2nl(`${ass.bold("ninnin options")}`);
     for (const [i, optPair] of ArrayEntries(this.options)) {
       const opt = optPair[1];
       if (opt.optVisible()) {
         opt.draw(ass, this.currentOption === i);
       }
     }
-    ass.append("\\N▲ / ▼: navigate\\N");
-    ass.append(`${bold("ENTER:")} confirm options\\N`);
-    ass.append(`${bold("ESC:")} cancel\\N`);
+    ass.append_nl("\\N▲ / ▼: navigate");
+    ass.append_nl(`${ass.bold("ENTER:")} confirm options`);
+    ass.append_nl(`${ass.bold("ESC:")} cancel`);
     mp.set_osd_ass(window_w, window_h, ass.text);
   }
 }

@@ -1,5 +1,3 @@
-import AssDraw from "mpv-assdraw";
-
 import Page from "./page";
 import CropPage from "./crop-page";
 import PreviewPage from "./preview-page";
@@ -7,9 +5,10 @@ import EncodeOptionsPage from "./encode-options-page";
 import { getMetadataTitle, getOutPath } from "../encode/cmd";
 import { doEncode } from "../encode/encode";
 import { Region } from "../video-to-screen";
-import { bold, message } from "../utils";
+import { message } from "../utils";
 import options from "../options";
 import { seconds_to_time_string } from "../pretty";
+import Ass from "../ass";
 
 export default class MainPage extends Page {
   private startTime = -1;
@@ -76,27 +75,27 @@ export default class MainPage extends Page {
 
   draw() {
     const { width: window_w, height: window_h } = mp.get_osd_size()!;
-    const ass = new AssDraw();
+    const ass = new Ass();
     ass.new_event();
     this.setup_text(ass);
     const outPath = getOutPath(this.startTime, this.endTime);
     const title = getMetadataTitle();
     // prettier-ignore
     {
-      ass.append(`${bold('ninnin encoder')}\\N\\N`);
-      ass.append(`output: ${outPath}\\N`);
+      ass.append_2nl(`${ass.bold('ninnin encoder')}`);
+      ass.append_nl(`output: ${outPath}`);
       if (options.write_metadata_title && title) {
-        ass.append(`title: ${title}\\N`);
+        ass.append_nl(`title: ${title}`);
       }
-      ass.append(`${bold('o:')} change encode options\\N`);
-      ass.append(`${bold('1:')} set start time (current is ${seconds_to_time_string(this.startTime)})\\N`);
-      ass.append(`${bold('2:')} set end time (current is ${seconds_to_time_string(this.endTime)})\\N`);
-      // ass.append(`${bold('!:')} jump to start time\\N`);
-      // ass.append(`${bold('@:')} jump to end time\\N`);
-      ass.append(`${bold('c:')} crop\\N`);
-      ass.append(`${bold('p:')} preview\\N`);
-      ass.append(`${bold('e:')} encode\\N\\N`);
-      ass.append(`${bold('ESC:')} close\\N`);
+      ass.append_nl(`${ass.bold('o:')} change encode options`);
+      ass.append_nl(`${ass.bold('1:')} set start time (current is ${seconds_to_time_string(this.startTime)})`);
+      ass.append_nl(`${ass.bold('2:')} set end time (current is ${seconds_to_time_string(this.endTime)})`);
+      // ass.append_nl(`${ass.bold('!:')} jump to start time`);
+      // ass.append_nl(`${ass.bold('@:')} jump to end time`);
+      ass.append_nl(`${ass.bold('c:')} crop`);
+      ass.append_nl(`${ass.bold('p:')} preview`);
+      ass.append_2nl(`${ass.bold('e:')} encode`);
+      ass.append_nl(`${ass.bold('ESC:')} close`);
     }
     mp.set_osd_ass(window_w, window_h, ass.text);
   }

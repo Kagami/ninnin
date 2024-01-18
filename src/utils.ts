@@ -1,11 +1,5 @@
-import type { MP } from "mpv.d.ts";
-
 import options from "./options";
 import { StringStartsWith } from "./lib/helpers";
-
-export function bold(text: string) {
-  return `{\\b1}${text}{\\b0}`;
-}
 
 // OSD message, using ass.
 export function message(text: string, duration?: number) {
@@ -14,22 +8,6 @@ export function message(text: string, duration?: number) {
   // size in set_osd_ass.
   ass += text;
   mp.osd_message(ass, duration || options.message_duration);
-}
-
-export function run_subprocess(params: MP.Cmd.SubprocessArgs) {
-  const res = mp.command_native(params) as MP.Cmd.SubprocessResult;
-  mp.msg.verbose("Command stdout: ");
-  mp.msg.verbose(res.stdout);
-  if (res.status !== 0) {
-    mp.msg.verbose(
-      "Command failed! Reason: ",
-      res.error_string,
-      " Killed by us? ",
-      res.killed_by_us ? "yes" : "no"
-    );
-    return false;
-  }
-  return true;
 }
 
 export function calculate_scale_factor() {

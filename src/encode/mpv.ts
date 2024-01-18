@@ -1,3 +1,4 @@
+import type { Stats } from "./script";
 import { remove_file } from "../os";
 
 export class MPVEncode {
@@ -32,21 +33,17 @@ export class MPVEncode {
     });
   }
 
-  // encoding progress (0-100, -1 if error/unknown)
-  progress(startTime: number, endTime: number) {
-    let data = "";
+  /**
+   * Current encoding stats, undefined if error/unknown.
+   * See ./script module for more info.
+   */
+  getStats(): Stats | undefined {
     try {
-      data = mp.utils.read_file(this.logPath);
+      const data = mp.utils.read_file(this.logPath);
+      return JSON.parse(data);
     } catch (e) {
-      return -1;
+      return;
     }
-    if (!data) return -1;
-    // script dumps time-pos
-    const pts = +data;
-    if (pts < startTime) return 0;
-    if (pts > endTime) return 100;
-    const progress = (pts - startTime) / (endTime - startTime);
-    return progress * 100;
   }
 
   wait() {

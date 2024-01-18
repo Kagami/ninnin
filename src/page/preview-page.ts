@@ -1,10 +1,9 @@
 import type { MP } from "mpv.d.ts";
-import AssDraw from "mpv-assdraw";
 
 import { ObjectEntries } from "../lib/helpers";
-import { bold } from "../utils";
 import type { Region } from "../video-to-screen";
 import Page from "./page";
+import Ass from "../ass";
 
 export default class PreviewPage extends Page {
   private callback: () => void;
@@ -76,10 +75,10 @@ export default class PreviewPage extends Page {
 
   draw() {
     const { width: window_w, height: window_h } = mp.get_osd_size()!;
-    const ass = new AssDraw();
+    const ass = new Ass();
     ass.new_event();
     this.setup_text(ass);
-    ass.append(`Press ${bold("ESC")} to exit preview.\\N`);
+    ass.append_nl(`Press ${ass.bold("ESC")} to exit preview.`);
     mp.set_osd_ass(window_w, window_h, ass.text);
   }
 
