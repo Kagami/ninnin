@@ -1,3 +1,9 @@
+/**
+ * Mutable state of the current options.
+ *
+ * Should be quite safe to use in pure functions because we only do single
+ * encoding at once and change options only by user interaction.
+ */
 const options = {
   // Defaults to shift+w
   keybind: "W",

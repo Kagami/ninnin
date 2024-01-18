@@ -5,11 +5,11 @@ import options from "../options";
 // A basic format class, which specifies some fields to be set by child classes.
 export class Format {
   protected displayName = "";
-  public videoCodec = "";
-  public audioCodec = "";
-  public outputExtension = "";
-  public twoPassSupported = true;
-  public twoPassPreferable = false; // libvpx/libaom have better resulting quality with 2-pass
+  videoCodec = "";
+  audioCodec = "";
+  outputExtension = "";
+  twoPassSupported = true;
+  twoPassPreferable = false; // libvpx/libaom have better resulting quality with 2-pass
 
   getDisplayName() {
     return this.displayName;
@@ -23,11 +23,6 @@ export class Format {
 
   // Similar to getPreFilters, but after our transformations.
   getPostFilters() {
-    return [] as string[];
-  }
-
-  // A list of flags, to be appended to the command line.
-  getPostFlags() {
     return [] as string[];
   }
 
@@ -49,21 +44,37 @@ export class Format {
     return [`--oac=${this.audioCodec}`];
   }
 
-  // Method to modify commandline arguments just before the command is executed
-  // postCommandModifier(
-  //   command: string[],
-  //   region: Region,
-  //   startTime: number,
-  //   endTime: number
-  // ) {
-  //   return command;
-  // }
+  // A list of flags, to be appended to the command line.
+  getPostFlags() {
+    return [] as string[];
+  }
+
+  // Two pass routines
+  protected getPassLogPath(outPath: string) {
+    const [dir, fname] = mp.utils.split_path(outPath);
+    // custom log path for x264, x265
+    const logName = `.ninnin-${fname}.passlog`;
+    return mp.utils.join_path(dir, logName);
+  }
+  protected getPassCommonFlags(_outPath: string) {
+    return [] as string[];
+  }
+  getPass1Flags(outPath: string) {
+    return ["--ovcopts-add=flags=+pass1", ...this.getPassCommonFlags(outPath)];
+  }
+  getPass2Flags(outPath: string) {
+    return ["--ovcopts-add=flags=+pass2", ...this.getPassCommonFlags(outPath)];
+  }
+  getPassFilePaths(outPath: string) {
+    // created by mpv (empty in case of x264, x265)
+    return [`${outPath}-video-pass1.log`];
+  }
 }
 
 class X264 extends Format {
-  public videoCodec = "libx264";
-  public audioCodec = "aac";
-  public outputExtension = "mp4";
+  videoCodec = "libx264";
+  audioCodec = "aac";
+  outputExtension = "mp4";
 
   getDisplayName(): string {
     return getCaps().has_aac_at ? "x264/aac_at" : "x264/aac";
@@ -88,13 +99,36 @@ class X264 extends Format {
   getPostFlags() {
     return ["--ofopts-add=movflags=+faststart"];
   }
+
+  getPassCommonFlags(outPath: string) {
+    // specify passlog path for x264
+    return [`--ovcopts-add=stats=${this.getPassLogPath(outPath)}`];
+  }
+  getPassFilePaths(outPath: string) {
+    const pathMain = super.getPassLogPath(outPath); // normal log
+    const pathMBtree = pathMain + ".mbtree"; // additional mbtree log
+    const pathMainTemp = pathMain + ".temp"; // during pass1 run
+    const pathMBtreeTemp = pathMBtree + ".temp"; // during pass1 run
+    return super
+      .getPassFilePaths(outPath)
+      .concat([pathMain, pathMBtree, pathMainTemp, pathMBtreeTemp]);
+  }
 }
 
-class X265 extends X264 {
-  public videoCodec = "libx265";
+class X265 extends Format {
+  videoCodec = "libx265";
+  audioCodec = "aac";
+  outputExtension = "mp4";
 
   getDisplayName() {
     return getCaps().has_aac_at ? "x265/aac_at" : "x265/aac";
+  }
+
+  getPostFilters() {
+    // Quality should be a bit better with Main10 profile even on 8bit content.
+    // FIXME: is that no-op in case of 10bit content?
+    // FIXME: maybe should be before scale for better quality or resize?
+    return ["format=yuv420p10le"];
   }
 
   getVideoFlags() {
@@ -104,21 +138,54 @@ class X265 extends X264 {
     ];
   }
 
-  getPostFilters() {
-    // Quality should be a bit better with Main10 profile even on 8bit content.
-    // FIXME: is that no-op in case of 10bit content?
-    // FIXME: maybe should be before scale for better quality or resize?
-    return ["format=yuv420p10le"];
+  getAudioFlags() {
+    if (getCaps().has_aac_at) {
+      // FIXME: TVBR vs CVBR?
+      return ["--oac=aac_at", "--oacopts-add=aac_at_mode=cvbr"];
+    } else {
+      return ["--oac=aac"];
+    }
+  }
+
+  getPostFlags() {
+    return ["--ofopts-add=movflags=+faststart"];
+  }
+
+  getPass1Flags(outPath: string) {
+    // need to merge all flags into single x265-params
+    return [
+      ...super.getPass1Flags(outPath),
+      `--ovcopts-add=x265-params=pass=1:stats=${this.getPassLogPath(outPath)}`,
+    ];
+  }
+  getPass2Flags(outPath: string) {
+    return [
+      ...super.getPass2Flags(outPath),
+      `--ovcopts-add=x265-params=pass=2:stats=${this.getPassLogPath(outPath)}`,
+    ];
+  }
+  getPassFilePaths(outPath: string) {
+    const pathMain = this.getPassLogPath(outPath); // normal log
+    const pathCUtree = pathMain + ".cutree"; // additional cutree log
+    const pathMainTemp = pathMain + ".temp"; // during pass1 run
+    const pathCUtreeTemp = pathCUtree + ".temp"; // during pass1 run
+    return super
+      .getPassFilePaths(outPath)
+      .concat([pathMain, pathCUtree, pathMainTemp, pathCUtreeTemp]);
   }
 }
 
 class HEVC_VTB extends Format {
   protected displayName = "hevc_vtb/aac_at";
-  public videoCodec = "hevc_videotoolbox";
-  public audioCodec = "aac";
-  public outputExtension = "mp4";
-  public twoPassSupported = false; // FIXME: check
-  private FF_QP2LAMBDA = 118;
+  videoCodec = "hevc_videotoolbox";
+  audioCodec = "aac";
+  outputExtension = "mp4";
+  twoPassSupported = false; // FIXME: check
+  private readonly FF_QP2LAMBDA = 118;
+
+  getPostFilters() {
+    return ["format=p010le"];
+  }
 
   getVideoFlags() {
     return [
@@ -136,10 +203,6 @@ class HEVC_VTB extends Format {
 
   getAudioFlags() {
     return ["--oac=aac_at", "--oacopts-add=aac_at_mode=cvbr"];
-  }
-
-  getPostFilters() {
-    return ["format=p010le"];
   }
 
   getPostFlags() {

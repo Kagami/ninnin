@@ -87,9 +87,10 @@ export default class MainPage extends Page {
       if (options.write_metadata_title && title) {
         ass.append_nl(`title: ${title}`);
       }
-      ass.append_nl(`${ass.bold('o:')} change encode options`);
-      ass.append_nl(`${ass.bold('1:')} set start time (current is ${seconds_to_time_string(this.startTime)})`);
-      ass.append_nl(`${ass.bold('2:')} set end time (current is ${seconds_to_time_string(this.endTime)})`);
+      ass.append_nl();
+      ass.append_nl(`${ass.bold('1:')} set start time (current ${seconds_to_time_string(this.startTime)})`);
+      ass.append_nl(`${ass.bold('2:')} set end time (current ${seconds_to_time_string(this.endTime)})`);
+      ass.append_nl(`${ass.bold('o:')} options`);
       // ass.append_nl(`${ass.bold('!:')} jump to start time`);
       // ass.append_nl(`${ass.bold('@:')} jump to end time`);
       ass.append_nl(`${ass.bold('c:')} crop`);
@@ -102,7 +103,6 @@ export default class MainPage extends Page {
 
   show() {
     super.show();
-
     // emit_event("show-main-page");
   }
 

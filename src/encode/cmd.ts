@@ -320,6 +320,9 @@ function calcBitrate(
       video_kilobits -= audio_kilobits;
     }
     video_bitrate = Math.floor(video_kilobits / duration);
+    // absolute minimum 100kbps
+    // FIXME: warn in UI?
+    video_bitrate = Math.max(100, video_bitrate);
   }
 
   return [video_bitrate, options.audio_bitrate];

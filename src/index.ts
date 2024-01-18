@@ -1,5 +1,3 @@
-import "mpv-promise";
-
 import "./lib/global";
 import options from "./options";
 import { monitor_dimensions } from "./video-to-screen";

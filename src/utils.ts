@@ -20,10 +20,6 @@ export function calculate_scale_factor() {
   return height / baseResY;
 }
 
-export function get_pass_logfile_path(encode_out_path: string) {
-  return `${encode_out_path}-video-pass1.log`;
-}
-
 // TODO: keep only yt-dl video ID?
 export function stripProtocol(url: string | undefined) {
   if (!url) return;

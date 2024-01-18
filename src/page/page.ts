@@ -4,7 +4,7 @@ import { calculate_scale_factor } from "../utils";
 import type Ass from "../ass";
 
 export default class Page {
-  protected keybinds: { [key: string]: () => void } | undefined;
+  protected keybinds?: { [key: string]: () => void };
   protected visible = false;
   private sizeCallback?: () => void;
 

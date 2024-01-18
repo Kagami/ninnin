@@ -1,6 +1,6 @@
 import Ass from "../ass";
 import Page from "../page/page";
-import { getErrMsg, get_pass_logfile_path, message } from "../utils";
+import { getErrMsg, message } from "../utils";
 import options from "../options";
 import { type Format, getCurrentFormat } from "./formats";
 import { type Region } from "../video-to-screen";
@@ -81,11 +81,6 @@ export default class EncodeWithProgress extends Page {
   }
 }
 
-function shouldTwoPass(format: Format) {
-  if (options.target_filesize) return format.twoPassSupported;
-  return format.twoPassPreferable;
-}
-
 function showErrorMsg(err: unknown) {
   if (isCancelled(err)) {
     message("Encode cancelled");
@@ -93,6 +88,11 @@ function showErrorMsg(err: unknown) {
     message("Encode failed: " + getErrMsg(err));
     mp.msg.error(err);
   }
+}
+
+function shouldTwoPass(format: Format) {
+  if (options.target_filesize) return format.twoPassSupported;
+  return format.twoPassPreferable;
 }
 
 async function encodeInner(
@@ -108,12 +108,12 @@ async function encodeInner(
   if (shouldTwoPass(format)) {
     pass = 1; // first pass
     const argsPass1 = args.slice();
-    argsPass1.push("--ovcopts-add=flags=+pass1");
+    argsPass1.push(...format.getPass1Flags(outPath));
     // FIXME: encode 1pass to /dev/null
     await ewp.startEncode(pass, argsPass1, outPath);
 
     pass = 2; // second pass
-    args.push("--ovcopts-add=flags=+pass2");
+    args.push(...format.getPass2Flags(outPath));
   }
 
   await ewp.startEncode(pass, args, outPath);
@@ -140,9 +140,11 @@ export async function doEncode(
     showErrorMsg(err);
   } finally {
     // FIXME: cleanup on player quit?
-    // Clean up pass log file.
+    // Clean up pass log files.
     if (shouldTwoPass(format)) {
-      remove_file(get_pass_logfile_path(outPath));
+      for (const fpath of format.getPassFilePaths(outPath)) {
+        remove_file(fpath, { silentErrors: true });
+      }
     }
     // Clean up dumped stream cache.
     if (isLive) {

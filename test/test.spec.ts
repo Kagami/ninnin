@@ -39,6 +39,42 @@ test("getMetadataTitle", () => {
   deepEqual(title, "test 비디오 [youtube.com/watch?v=ABCDEF-1234]");
 });
 
+test("x264 twopass", () => {
+  deepEqual(formatByName.x264.getPass1Flags("/tmp/out.mp4"), [
+    "--ovcopts-add=flags=+pass1",
+    "--ovcopts-add=stats=/tmp/.ninnin-out.mp4.passlog",
+  ]);
+  deepEqual(formatByName.x264.getPass2Flags("/tmp/out.mp4"), [
+    "--ovcopts-add=flags=+pass2",
+    "--ovcopts-add=stats=/tmp/.ninnin-out.mp4.passlog",
+  ]);
+  deepEqual(formatByName.x264.getPassFilePaths("/tmp/out.mp4"), [
+    "/tmp/out.mp4-video-pass1.log",
+    "/tmp/.ninnin-out.mp4.passlog",
+    "/tmp/.ninnin-out.mp4.passlog.mbtree",
+    "/tmp/.ninnin-out.mp4.passlog.temp",
+    "/tmp/.ninnin-out.mp4.passlog.mbtree.temp",
+  ]);
+});
+
+test("x265 twopass", () => {
+  deepEqual(formatByName.x265.getPass1Flags("/tmp/out.mp4"), [
+    "--ovcopts-add=flags=+pass1",
+    "--ovcopts-add=x265-params=pass=1:stats=/tmp/.ninnin-out.mp4.passlog",
+  ]);
+  deepEqual(formatByName.x265.getPass2Flags("/tmp/out.mp4"), [
+    "--ovcopts-add=flags=+pass2",
+    "--ovcopts-add=x265-params=pass=2:stats=/tmp/.ninnin-out.mp4.passlog",
+  ]);
+  deepEqual(formatByName.x265.getPassFilePaths("/tmp/out.mp4"), [
+    "/tmp/out.mp4-video-pass1.log",
+    "/tmp/.ninnin-out.mp4.passlog",
+    "/tmp/.ninnin-out.mp4.passlog.cutree",
+    "/tmp/.ninnin-out.mp4.passlog.temp",
+    "/tmp/.ninnin-out.mp4.passlog.cutree.temp",
+  ]);
+});
+
 test("buildCommand x264/aac", () => {
   const cmdRes = buildCommand(new Region(), START_TIME, END_TIME)!;
   deepEqual(cmdRes.args, [
