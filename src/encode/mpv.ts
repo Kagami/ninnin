@@ -32,7 +32,8 @@ export class MPVEncode {
       this.asyncID = mp.command_native_async(
         { name: "subprocess", args, playback_only: false },
         (success, result, error) => {
-          // FIXME: cleanup on player quit?
+          // FIXME: cleanup partial file on error?
+          // FIXME: cleanup log on player quit?
           remove_file(this.logPath);
           if (!success) return reject(new Error(error));
           const res = result as MP.Cmd.SubprocessResult;

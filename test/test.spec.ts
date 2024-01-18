@@ -60,11 +60,11 @@ test("x264 twopass", () => {
 test("x265 twopass", () => {
   deepEqual(formatByName.x265.getPass1Flags("/tmp/out.mp4"), [
     "--ovcopts-add=flags=+pass1",
-    "--ovcopts-add=x265-params=pass=1:stats=/tmp/.ninnin-out.mp4.passlog",
+    "--ovcopts-add=x265-params=log-level=warning:pass=1:stats=/tmp/.ninnin-out.mp4.passlog",
   ]);
   deepEqual(formatByName.x265.getPass2Flags("/tmp/out.mp4"), [
     "--ovcopts-add=flags=+pass2",
-    "--ovcopts-add=x265-params=pass=2:stats=/tmp/.ninnin-out.mp4.passlog",
+    "--ovcopts-add=x265-params=log-level=warning:pass=2:stats=/tmp/.ninnin-out.mp4.passlog",
   ]);
   deepEqual(formatByName.x265.getPassFilePaths("/tmp/out.mp4"), [
     "/tmp/out.mp4-video-pass1.log",

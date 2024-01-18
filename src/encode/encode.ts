@@ -103,7 +103,7 @@ async function encodeInner(
   outPath: string
 ) {
   const ewp = new EncodeWithProgress(startTime, endTime);
-  let pass = 0; // no 2pass
+  let pass = 0; // single pass
 
   if (shouldTwoPass(format)) {
     pass = 1; // first pass
@@ -114,6 +114,8 @@ async function encodeInner(
 
     pass = 2; // second pass
     args.push(...format.getPass2Flags(outPath));
+  } else {
+    args.push(...format.getPass0Flags(outPath));
   }
 
   await ewp.startEncode(pass, args, outPath);

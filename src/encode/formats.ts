@@ -59,6 +59,9 @@ export class Format {
   protected getPassCommonFlags(_outPath: string) {
     return [] as string[];
   }
+  getPass0Flags(_outPath: string) {
+    return [] as string[]; // flags for normal single pass mode
+  }
   getPass1Flags(outPath: string) {
     return ["--ovcopts-add=flags=+pass1", ...this.getPassCommonFlags(outPath)];
   }
@@ -151,17 +154,28 @@ class X265 extends Format {
     return ["--ofopts-add=movflags=+faststart"];
   }
 
+  private getCommonX265Params() {
+    return ["log-level=warning"];
+  }
+  private mergeX265Params(...params: string[]) {
+    params = this.getCommonX265Params().concat(params);
+    return "--ovcopts-add=x265-params=" + params.join(":");
+  }
+
+  // XXX: hackish method to merge all flags we need into single x265-params
+  getPass0Flags(_outPath: string): string[] {
+    return [this.mergeX265Params()];
+  }
   getPass1Flags(outPath: string) {
-    // need to merge all flags into single x265-params
     return [
       ...super.getPass1Flags(outPath),
-      `--ovcopts-add=x265-params=pass=1:stats=${this.getPassLogPath(outPath)}`,
+      this.mergeX265Params("pass=1", `stats=${this.getPassLogPath(outPath)}`),
     ];
   }
   getPass2Flags(outPath: string) {
     return [
       ...super.getPass2Flags(outPath),
-      `--ovcopts-add=x265-params=pass=2:stats=${this.getPassLogPath(outPath)}`,
+      this.mergeX265Params("pass=2", `stats=${this.getPassLogPath(outPath)}`),
     ];
   }
   getPassFilePaths(outPath: string) {
