@@ -136,7 +136,7 @@ function set_dimensions_changed() {
   dimensions_changed = true;
 }
 
-export function monitor_dimensions() {
+export function trackDimensions() {
   // Monitor these properties, as they affect the video dimensions.
   // Set the dimensions-changed flag when they change.
   const properties = [

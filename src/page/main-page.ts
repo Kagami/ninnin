@@ -55,7 +55,7 @@ export default class MainPage extends Page {
     mp.set_property_number("time-pos", this.endTime);
   }
 
-  setupStartAndEndTimes() {
+  updateStartEnd() {
     if (mp.get_property_native("duration")) {
       // Note: there exists an option called rebase-start-time, which, when set to no,
       // could cause the beginning of the video to not be at 0. Not sure how this
