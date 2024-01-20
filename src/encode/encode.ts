@@ -6,7 +6,7 @@ import { type Region } from "../video-to-screen";
 import { buildCommand, shouldTwoPass } from "./cmd";
 import { remove_file } from "../os";
 import { MPVEncode, isCancelled } from "./mpv";
-import { seconds_to_time_string } from "../pretty";
+import { showTime } from "../pretty";
 
 // Not really a Page, but reusing its functions is pretty useful
 export default class EncodeWithProgress extends Page {
@@ -34,8 +34,8 @@ export default class EncodeWithProgress extends Page {
     let progress = Math.floor((timePos / duration) * 100);
     progress = Math.min(100, Math.max(0, progress));
 
-    const pos = seconds_to_time_string(timePos, true);
-    const dur = seconds_to_time_string(duration, true);
+    const pos = showTime(timePos, { ms: false });
+    const dur = showTime(duration, { ms: false });
     this.lastStatus = `${pos}/${dur} (${progress}%)`;
     return this.lastStatus;
   }

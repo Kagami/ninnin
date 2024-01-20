@@ -7,7 +7,7 @@ import { doEncode } from "../encode/encode";
 import { Region } from "../video-to-screen";
 import { message } from "../utils";
 import options from "../options";
-import { seconds_to_time_string } from "../pretty";
+import { showTime } from "../pretty";
 import Ass from "../ass";
 
 export default class MainPage extends Page {
@@ -88,8 +88,8 @@ export default class MainPage extends Page {
         ass.append_nl(`title: ${title}`);
       }
       ass.append_nl();
-      ass.append_nl(`${ass.bold('1:')} set start time (current ${seconds_to_time_string(this.startTime)})`);
-      ass.append_nl(`${ass.bold('2:')} set end time (current ${seconds_to_time_string(this.endTime)})`);
+      ass.append_nl(`${ass.bold('1:')} set start time (current ${showTime(this.startTime)})`);
+      ass.append_nl(`${ass.bold('2:')} set end time (current ${showTime(this.endTime)})`);
       ass.append_nl(`${ass.bold('o:')} options`);
       // ass.append_nl(`${ass.bold('!:')} jump to start time`);
       // ass.append_nl(`${ass.bold('@:')} jump to end time`);

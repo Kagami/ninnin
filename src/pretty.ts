@@ -25,32 +25,28 @@ function format_3f(n: number) {
   return n.toFixed(3);
 }
 
-export function seconds_to_time_string(
+export function showTime(
   seconds: number,
-  no_ms = false,
-  full = false
+  { ms = true, hr = false, sep = ":" } = {}
 ) {
   if (seconds < 0) return "unknown";
   let ret = "";
-  if (!no_ms) {
+  if (ms) {
     ret = "." + format_03d((seconds * 1000) % 1000);
   }
   ret =
     format_02d(Math.floor(seconds / 60) % 60) +
-    ":" +
+    sep +
     format_02d(Math.floor(seconds) % 60) +
     ret;
-  if (full || seconds > 3600) {
-    ret = Math.floor(seconds / 3600) + ":" + ret;
+  if (hr || seconds > 3600) {
+    ret = Math.floor(seconds / 3600) + sep + ret;
   }
   return ret;
 }
 
-function seconds_to_path_element(seconds: number, no_ms = false, full = false) {
-  let time_string = seconds_to_time_string(seconds, no_ms, full);
-  // Needed for Windows (and maybe for Linux? idk)
-  time_string = time_string.replace(/:/g, ".");
-  return time_string;
+function showTimePath(seconds: number, { ms = true } = {}) {
+  return showTime(seconds, { ms, sep: "." });
 }
 
 // FIXME: use expand-properties instead?
@@ -159,10 +155,10 @@ export function formatFilename(
     [/%mT/g, format_3f(endTime % 1).slice(2)],
     [/%f/g, mp.get_property("filename", "")],
     [/%F/g, mp.get_property("filename/no-ext", "")],
-    [/%s/g, seconds_to_path_element(startTime)],
-    [/%S/g, seconds_to_path_element(startTime, true)],
-    [/%e/g, seconds_to_path_element(endTime)],
-    [/%E/g, seconds_to_path_element(endTime, true)],
+    [/%s/g, showTimePath(startTime)],
+    [/%S/g, showTimePath(startTime, { ms: false })],
+    [/%e/g, showTimePath(endTime)],
+    [/%E/g, showTimePath(endTime, { ms: false })],
     [/%T/g, mp.get_property("media-title", "")],
     [
       /%M/g,

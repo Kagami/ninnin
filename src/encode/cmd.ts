@@ -5,7 +5,7 @@ import type { Region } from "../video-to-screen";
 import options from "../options";
 import { byteLength, message, stripProtocol } from "../utils";
 import { ObjectEntries, StringStartsWith } from "../lib/helpers";
-import { formatFilename, seconds_to_time_string } from "../pretty";
+import { formatFilename, showTime } from "../pretty";
 import { getNullPath } from "../os";
 
 type Track = MP.Prop.Track;
@@ -430,8 +430,8 @@ export function buildCommand(
     "--no-terminal",
     // FIXME: shift by 1ms to be frame exact
     // FIXME: not needed if encoding full file?
-    "--start=" + seconds_to_time_string(startTime, false, true),
-    "--end=" + seconds_to_time_string(endTime, false, true),
+    "--start=" + showTime(startTime, { hr: true }),
+    "--end=" + showTime(endTime, { hr: true }),
     // When loop-file=inf, the encode won't end. Set this to override.
     "--loop-file=no",
     // Same thing with --pause
