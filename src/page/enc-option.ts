@@ -1,5 +1,5 @@
 import { ArrayEntries } from "../lib/helpers";
-import type Ass from "../ass";
+import type Ass from "../lib/ass";
 
 // If optType is a "bool" or an "int", @value is the boolean/integer value of the option.
 // Additionally, when optType is an "int":
@@ -8,7 +8,7 @@ import type Ass from "../ass";
 //     - opts.max specifies a maximum value for the option.
 //     - opts.altDisplayNames is a int->string dict, which contains alternative display names
 //       for certain values.
-// If optType is a "list", @value is the index of the current option, inside opts.possibleValues.
+// If optType is a "list", @value is the value of the current option, inside opts.possibleValues.
 // opts.possibleValues is a array in the format
 // {
 //		{value, displayValue}, -- Display value can be omitted.
@@ -16,16 +16,16 @@ import type Ass from "../ass";
 // }
 // setValue will be called for the constructor argument.
 // visibleCheckFn is a function to check for visibility, it can be used to hide options based on rules
-export class EncOption<T, O> {
-  protected value: T;
+export class EncOption<V, O> {
+  protected value: V;
   protected opts: O;
   protected displayText: string;
   protected visibleCheckFn?: () => boolean;
-  protected index = 0;
+  protected index = 0; // XXX: only for EncListOption but can't initialize it before super() there
 
   constructor(
     displayText: string,
-    value: T,
+    value: V,
     opts: O,
     visibleCheckFn?: () => boolean
   ) {
@@ -49,7 +49,7 @@ export class EncOption<T, O> {
   getValue() {
     return this.value;
   }
-  setValue(value: T) {
+  setValue(value: V) {
     this.value = value;
   }
   getDisplayValue() {
@@ -143,9 +143,9 @@ export class EncOptionInt extends EncOption<
   }
 }
 
-export type EncOptionListOpts<V> = ([V] | [V, string])[];
+export type EncOptionListOpts<LV> = ([LV] | [LV, string])[];
 
-export class EncOptionList<V> extends EncOption<V, EncOptionListOpts<V>> {
+export class EncOptionList<LV> extends EncOption<LV, EncOptionListOpts<LV>> {
   hasPrevious() {
     return this.index > 0;
   }
@@ -165,7 +165,7 @@ export class EncOptionList<V> extends EncOption<V, EncOptionListOpts<V>> {
   getValue() {
     return this.opts[this.index][0];
   }
-  setValue(value: V) {
+  setValue(value: LV) {
     let set = false;
     for (const [i, possibleValue] of ArrayEntries(this.opts)) {
       if (possibleValue[0] === value) {

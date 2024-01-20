@@ -3,7 +3,7 @@ import type { MP } from "mpv.d.ts";
 import { ObjectEntries } from "../lib/helpers";
 import type { Region } from "../video-to-screen";
 import Page from "./page";
-import Ass from "../ass";
+import Ass from "../lib/ass";
 
 export default class PreviewPage extends Page {
   private callback: () => void;

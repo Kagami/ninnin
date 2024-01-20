@@ -1,14 +1,14 @@
+import options from "../options";
 import Page from "./page";
 import CropPage from "./crop-page";
 import PreviewPage from "./preview-page";
-import EncodeOptionsPage from "./encode-options-page";
+import EncodeOptionsPage from "./options-page";
 import { getMetadataTitle, getOutPath } from "../encode/cmd";
 import { doEncode } from "../encode/encode";
 import { Region } from "../video-to-screen";
 import { message } from "../utils";
-import options from "../options";
 import { showTime } from "../pretty";
-import Ass from "../ass";
+import Ass from "../lib/ass";
 
 export default class MainPage extends Page {
   private startTime = -1;
@@ -106,9 +106,8 @@ export default class MainPage extends Page {
     // emit_event("show-main-page");
   }
 
-  // FIXME: remove updated prop
-  onUpdateCropRegion(updated: boolean, newRegion: Region | null) {
-    if (updated && newRegion) {
+  onNewCrop(newRegion?: Region) {
+    if (newRegion) {
       this.region = newRegion;
     }
     this.show();
@@ -116,22 +115,17 @@ export default class MainPage extends Page {
 
   crop() {
     this.hide();
-    const cropPage = new CropPage(
-      this.onUpdateCropRegion.bind(this),
-      this.region
-    );
+    const cropPage = new CropPage(this.onNewCrop.bind(this), this.region);
     cropPage.show();
   }
 
-  onOptionsChanged(_updated: boolean) {
+  onNewOptions() {
     this.show();
   }
 
   changeOptions() {
     this.hide();
-    const encodeOptsPage = new EncodeOptionsPage(
-      this.onOptionsChanged.bind(this)
-    );
+    const encodeOptsPage = new EncodeOptionsPage(this.onNewOptions.bind(this));
     encodeOptsPage.show();
   }
 

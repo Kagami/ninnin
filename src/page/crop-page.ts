@@ -2,19 +2,13 @@ import type { MP } from "mpv.d.ts";
 
 import { Region, VideoPoint, get_video_dimensions } from "../video-to-screen";
 import Page from "./page";
-import Ass from "../ass";
-
-export type CropCallbackFn = (
-  updated: boolean,
-  newRegion: Region | null
-) => void;
+import Ass from "../lib/ass";
 
 export default class CropPage extends Page {
-  private callback: CropCallbackFn;
   private pointA: VideoPoint;
   private pointB: VideoPoint;
 
-  constructor(callback: CropCallbackFn, region: Region) {
+  constructor(private callback: (r?: Region) => void, region: Region) {
     super();
     this.pointA = new VideoPoint();
     this.pointB = new VideoPoint();
@@ -26,7 +20,6 @@ export default class CropPage extends Page {
       ENTER: this.finish.bind(this),
     };
     this.reset();
-    this.callback = callback;
     // If we have a region, set point A and B from it
     if (region && region.is_valid()) {
       this.pointA.x = region.x;
@@ -71,14 +64,14 @@ export default class CropPage extends Page {
 
   cancel() {
     this.hide();
-    this.callback(false, null);
+    this.callback(undefined);
   }
 
   finish() {
     const region = new Region();
     region.set_from_points(this.pointA, this.pointB);
     this.hide();
-    this.callback(true, region);
+    this.callback(region);
   }
 
   draw_box(ass: Ass) {

@@ -1,7 +1,7 @@
 import type { MP } from "mpv.d.ts";
 
 import type { Stats } from "./script";
-import { remove_file } from "../os";
+import { remove_file } from "../lib/os";
 
 const CANCEL_MSG = "ninnin-cancel";
 

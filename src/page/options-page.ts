@@ -1,25 +1,23 @@
+import options, { type Options, saveOptions, resetOptions } from "../options";
 import { formats } from "../encode/formats";
-import options, { type Options } from "../options";
-import { ArrayEntries, ObjectFromEntries } from "../lib/helpers";
+import { ArrayEntries, ObjectEntries, ObjectFromEntries } from "../lib/helpers";
 import {
   type EncOption,
   EncOptionBool,
   EncOptionInt,
   EncOptionList,
   type EncOptionListOpts as ListOpts,
-} from "./encode-option";
+} from "./enc-option";
 import Page from "./page";
-import Ass from "../ass";
+import Ass from "../lib/ass";
 
 export default class EncodeOptionsPage extends Page {
   private currentOption = 0;
-  private callback: (updated: boolean) => void;
   private options: [keyof Options, EncOption<any, any>][];
   private optionByName: { [key: string]: EncOption<any, any> };
 
-  constructor(callback: (updated: boolean) => void) {
+  constructor(private callback: () => void) {
     super();
-    this.callback = callback;
 
     const formatOpts: ListOpts<string> = formats.map((v) => [
       v[0],
@@ -121,6 +119,8 @@ export default class EncodeOptionsPage extends Page {
       DOWN: this.nextOpt.bind(this),
       ENTER: this.confirmOpts.bind(this),
       ESC: this.cancelOpts.bind(this),
+      s: this.saveOpts.bind(this),
+      r: this.resetOpts.bind(this),
     };
   }
 
@@ -183,18 +183,40 @@ export default class EncodeOptionsPage extends Page {
     this.draw();
   }
 
-  confirmOpts() {
+  applyOpts() {
     for (const [optName, opt] of this.options) {
-      // Set the global options object.
       options[optName] = opt.getValue() as never;
     }
+  }
+
+  confirmOpts() {
+    this.applyOpts();
     this.hide();
-    this.callback(true);
+    this.callback();
   }
 
   cancelOpts() {
     this.hide();
-    this.callback(false);
+    this.callback();
+  }
+
+  saveOpts() {
+    this.applyOpts();
+    saveOptions();
+    this.hide();
+    this.callback();
+  }
+
+  resetOpts() {
+    resetOptions();
+    for (const [key, value] of ObjectEntries(options)) {
+      const opt = this.optionByName[key];
+      if (opt) {
+        opt.setValue(value);
+      }
+    }
+    this.currentOption = 0;
+    this.draw();
   }
 
   draw() {
@@ -210,8 +232,10 @@ export default class EncodeOptionsPage extends Page {
       }
     }
     ass.append_nl("\\N▲ / ▼: navigate");
-    ass.append_nl(`${ass.bold("ENTER:")} confirm options`);
+    ass.append_nl(`${ass.bold("ENTER:")} confirm`);
     ass.append_nl(`${ass.bold("ESC:")} cancel`);
+    ass.append_nl(`${ass.bold("s:")} save options`);
+    ass.append_nl(`${ass.bold("r:")} reset options`);
     mp.set_osd_ass(window_w, window_h, ass.text);
   }
 }

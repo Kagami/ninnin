@@ -1,10 +1,10 @@
-import Ass from "../ass";
+import Ass from "../lib/ass";
 import Page from "../page/page";
 import { getErrMsg, message } from "../utils";
 import { type Format, getCurrentFormat } from "./formats";
 import { type Region } from "../video-to-screen";
 import { buildCommand, shouldTwoPass } from "./cmd";
-import { remove_file } from "../os";
+import { remove_file } from "../lib/os";
 import { MPVEncode, isCancelled } from "./mpv";
 import { showTime } from "../pretty";
 

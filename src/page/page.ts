@@ -1,7 +1,7 @@
 import options from "../options";
 import { ObjectEntries } from "../lib/helpers";
 import { calculate_scale_factor } from "../utils";
-import type Ass from "../ass";
+import type Ass from "../lib/ass";
 
 export default class Page {
   protected keybinds?: { [key: string]: () => void };

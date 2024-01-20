@@ -21,6 +21,18 @@ export function remove_file(path: string, { silentErrors = false } = {}) {
   } as MP.Cmd.SubprocessArgs);
 }
 
+export function mkdirp(dir: string) {
+  // In Windows, mkdir creates directory trees by default.
+  // FIXME: silent errors on Windows?
+  const args =
+    getPlatform() === "windows" ? ["mkdir", dir] : ["mkdir", "-p", dir];
+  mp.command_native({
+    name: "subprocess",
+    args,
+    playback_only: false,
+  } as MP.Cmd.SubprocessArgs);
+}
+
 export function getNullPath() {
   return getPlatform() === "windows" ? "NUL" : "/dev/null";
 }

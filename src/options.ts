@@ -1,10 +1,9 @@
-/**
- * Mutable state of the current options.
- *
- * Should be quite safe to use in pure functions because we only do single
- * encoding at once and change options only by user interaction.
- */
-const options = {
+/** Central options module. Do not import non-lib modules here to avoid cyclic imports. */
+
+import { ObjectAssign, ObjectEntries } from "./lib/helpers";
+import { mkdirp } from "./lib/os";
+
+const DEFAULT_OPTIONS = {
   // Defaults to shift+w
   keybind: "W",
   // If empty, saves on the same directory of the playing video.
@@ -53,13 +52,52 @@ const options = {
   // Custom encoding flags.
   additional_flags: "",
   // gif dither mode, 0-5 for bayer w/ bayer_scale 0-5, 6 for paletteuse default (sierra2_4a)
-  gif_dither: 2,
+  // gif_dither: 2,
 
   // The font size used in the menu. Isn't used for the notifications (started encode, finished encode etc)
   font_size: 20,
   margin: 10,
   message_duration: 5,
 };
+
+/**
+ * Mutable state of the current options.
+ *
+ * Should be quite safe to use in pure functions because we only do single
+ * encoding at once and can change options only via user interaction.
+ */
+export const options = { ...DEFAULT_OPTIONS };
+
+function serializeValue(value: string | number | boolean): string {
+  return typeof value === "boolean" ? (value ? "yes" : "no") : String(value);
+}
+
+/** Dump current options in the MPV format */
+export function serializeOptions(opts: Options): string {
+  let ret = "# WILL BE OVERWRITTEN BY THE SCRIPT, EDIT WITH CAUTION\n";
+  for (const [key, value] of ObjectEntries(opts)) {
+    ret += `${key}=${serializeValue(value)}\n`;
+  }
+  return ret;
+}
+
+function getConfigPath() {
+  return mp.utils.get_user_path("~~home/script-opts/ninnin.conf");
+}
+
+/** Save current options. */
+export function saveOptions() {
+  const cfgPath = getConfigPath();
+  const [dir, _] = mp.utils.split_path(cfgPath);
+  mkdirp(dir);
+  mp.utils.write_file("file://" + cfgPath, serializeOptions(options));
+}
+
+/** Reset options to defaults. */
+export function resetOptions() {
+  ObjectAssign(options, DEFAULT_OPTIONS);
+  saveOptions();
+}
 
 export default options;
 export type Options = typeof options;

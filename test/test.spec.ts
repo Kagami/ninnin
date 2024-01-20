@@ -1,7 +1,7 @@
 import { test, before, beforeEach } from "node:test";
 import { deepEqual } from "node:assert/strict";
 
-import options from "../src/options";
+import options, { serializeOptions } from "../src/options";
 import { byteLength } from "../src/utils";
 import { formatByName } from "../src/encode/formats";
 import { buildCommand, getMetadataTitle } from "../src/encode/cmd";
@@ -28,6 +28,23 @@ test("byteLength", () => {
 test("formatFilename", () => {
   const filename = formatFilename(START_TIME, END_TIME, formatByName.x264);
   deepEqual(filename, "video-[00.01.417-00.03.042].mp4");
+});
+
+test("serializeOptions", () => {
+  const opts = {
+    output_format: "x264",
+    scale_height: -1,
+    apply_current_filters: true,
+    force_square_pixels: false,
+  };
+  deepEqual(
+    serializeOptions(opts as any),
+    "# WILL BE OVERWRITTEN BY THE SCRIPT, EDIT WITH CAUTION\n" +
+      "output_format=x264\n" +
+      "scale_height=-1\n" +
+      "apply_current_filters=yes\n" +
+      "force_square_pixels=no\n"
+  );
 });
 
 test("getMetadataTitle", () => {

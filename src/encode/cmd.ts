@@ -6,7 +6,7 @@ import options from "../options";
 import { byteLength, message, stripProtocol } from "../utils";
 import { ObjectEntries, StringStartsWith } from "../lib/helpers";
 import { formatFilename, showTime } from "../pretty";
-import { getNullPath } from "../os";
+import { getNullPath } from "../lib/os";
 
 type Track = MP.Prop.Track;
 interface ActiveTracks {
