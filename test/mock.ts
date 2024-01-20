@@ -88,8 +88,6 @@ const mp = {
     switch (prop) {
       case "aid":
         return 1;
-      case "height":
-        return 1080;
       case "track-list":
         return [
           {
@@ -118,6 +116,8 @@ const mp = {
   },
   get_property_number(prop) {
     switch (prop) {
+      case "height":
+        return 1080;
       case "brightness":
       case "contrast":
       case "saturation":
@@ -137,6 +137,15 @@ const mp = {
         return false;
     }
     throw new Error("get_property_bool: " + prop);
+  },
+  command_native([cmd, ...args]) {
+    if (cmd === "expand-text") {
+      return args[0].replace(
+        "${filename/no-ext}",
+        currentFile["filename/no-ext"]
+      );
+    }
+    throw new Error("command_native: " + cmd);
   },
 };
 

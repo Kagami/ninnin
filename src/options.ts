@@ -11,16 +11,12 @@ const options = {
   // A starting "~" will be replaced by the home dir.
   output_directory: "~/Downloads", // FIXME: does it work everywhere?
   // Template string for the output file
-  // %f - Filename, with extension
-  // %F - Filename, without extension
-  // %T - Media title, if it exists, or filename, with extension (useful for some streams, such as YouTube).
   // %s, %e - Start and end time, with milliseconds
   // %S, %E - Start and end time, without milliseconds
   // %M - "-audio", if audio is enabled, empty otherwise
   // %R - "-(height)p", where height is the video's height, or scale_height, if it's enabled.
-  // More specifiers are supported, see https://mpv.io/manual/master/#options-screenshot-template
-  // Property expansion is supported (with %{} at top level, ${} when nested), see https://mpv.io/manual/master/#property-expansion
-  output_template: "%F-[%s-%e]",
+  // Property expansion is supported, see https://mpv.io/manual/master/#property-expansion
+  output_template: "${filename/no-ext}-[%s-%e]",
 
   // Sets the output format, from a few predefined ones.
   output_format: "x264",

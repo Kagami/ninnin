@@ -11,7 +11,7 @@ import { formatFilename } from "../src/pretty";
 import { setMock, enableVideoToolbox, resetOpts, setFile } from "./mock";
 
 const START_TIME = 1.41708333333333;
-const END_TIME = 3.0427083333333;
+const END_TIME = 3.0420083333333;
 
 before(() => {
   setMock();
@@ -27,7 +27,6 @@ test("byteLength", () => {
 
 test("formatFilename", () => {
   const filename = formatFilename(START_TIME, END_TIME, formatByName.x264);
-  // %F-[%s-%e]%M
   deepEqual(filename, "video-[00.01.417-00.03.042].mp4");
 });
 

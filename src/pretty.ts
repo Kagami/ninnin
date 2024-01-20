@@ -1,28 +1,12 @@
 import type { Format } from "./encode/formats";
 import options from "./options";
-import { StringMatchAll, StringEndsWith } from "./lib/helpers";
 
-function format_d(n: number) {
-  return Math.floor(n) + "";
-}
-function format_02d(n: number) {
+function pad2(n: number) {
   let s = Math.floor(n) + "";
   if (s.length === 1) {
     s = "0" + s;
   }
   return s;
-}
-function format_03d(n: number) {
-  let s = Math.floor(n) + "";
-  if (s.length === 1) {
-    s = "00" + s;
-  } else if (s.length === 2) {
-    s = "0" + s;
-  }
-  return s;
-}
-function format_3f(n: number) {
-  return n.toFixed(3);
 }
 
 export function showTime(
@@ -32,13 +16,9 @@ export function showTime(
   if (seconds < 0) return "unknown";
   let ret = "";
   if (ms) {
-    ret = "." + format_03d((seconds * 1000) % 1000);
+    ret = (seconds % 1).toFixed(3).slice(1);
   }
-  ret =
-    format_02d(Math.floor(seconds / 60) % 60) +
-    sep +
-    format_02d(Math.floor(seconds) % 60) +
-    ret;
+  ret = pad2((seconds / 60) % 60) + sep + pad2(seconds % 60) + ret;
   if (hr || seconds > 3600) {
     ret = Math.floor(seconds / 3600) + sep + ret;
   }
@@ -49,122 +29,23 @@ function showTimePath(seconds: number, { ms = true } = {}) {
   return showTime(seconds, { ms, sep: "." });
 }
 
-// FIXME: use expand-properties instead?
-function expand_properties(text: string, magic = "$") {
-  const re = new RegExp(
-    "\\" + magic + "\\{([?!]?)(=?)([^}:]*)(:?)([^}]*)(\\}*)}",
-    "g"
-  );
-  for (const [
-    _,
-    origPrefix,
-    raw,
-    prop,
-    colon,
-    fallback,
-    closing,
-  ] of StringMatchAll(text, re)) {
-    let prefix = origPrefix;
-    let actual_prop = prop;
-    let compare_value: string | undefined;
-    if (prefix) {
-      const m = prop.match(/(.*?)==(.*)/);
-      if (m) {
-        actual_prop = m[1];
-        compare_value = m[2];
-      }
-    }
-
-    const get_prop_fn = raw === "=" ? mp.get_property : mp.get_property_osd;
-    let prop_value =
-      get_prop_fn(actual_prop, colon === ":" ? fallback : "(error)") + "";
-    const err = mp.last_error();
-
-    if (prefix === "?") {
-      if (compare_value === undefined) {
-        prop_value = !err ? fallback + closing : "";
-      } else {
-        prop_value = prop_value === compare_value ? fallback + closing : "";
-      }
-      prefix = "\\" + prefix;
-    } else if (prefix === "!") {
-      if (compare_value === undefined) {
-        prop_value = err ? fallback + closing : "";
-      } else {
-        prop_value = prop_value !== compare_value ? fallback + closing : "";
-      }
-    } else {
-      prop_value = prop_value + closing;
-    }
-
-    // XXX: gsub in Lua, but single replace should be enough?
-    // XXX: don't need to escape \W here?
-    if (colon === ":") {
-      // prettier-ignore
-      text = text.replace(
-        "\\" + magic + "{" + prefix + raw + prop + ":" + fallback + closing + "}",
-        expand_properties(prop_value)
-      );
-    } else {
-      text = text.replace(
-        "\\" + magic + "{" + prefix + raw + prop + closing + "}",
-        prop_value
-      );
-    }
-  }
-
-  return text;
-}
-
-// FIXME: port
-// function lua_os_date(_format: string) {
-//   throw new Error("not implemented");
-// }
-
-// FIXME: use expand-properties instead?
-// https://www.reddit.com/r/mpv/comments/tx1yp8/is_there_a_way_for_mpv_to_show_me_data_like_album/
-const REPLACE_FIRST: [RegExp, string][] = [
-  [/%mp/g, "%mH.%mM.%mS"],
-  [/%mP/g, "%mH.%mM.%mS.%mT"],
-  [/%p/g, "%wH.%wM.%wS"],
-  [/%P/g, "%wH.%wM.%wS.%wT"],
-];
 export function formatFilename(
   startTime: number,
   endTime: number,
-  videoFormat: Format
+  format: Format
 ) {
-  const hasAudioCodec = !!videoFormat.audioCodec;
-  // TODO: is that slow?
+  // XXX: use proper parser if need to support more props, see
+  // https://github.com/mpv-player/mpv/blob/5f7ce41/player/screenshot.c#L141
   const replaceTable: [RegExp, string][] = [
-    [/%wH/g, format_02d(Math.floor(startTime / (60 * 60)))],
-    [/%wh/g, format_d(Math.floor(startTime / (60 * 60)))],
-    [/%wM/g, format_02d(Math.floor((startTime / 60) % 60))],
-    [/%wm/g, format_d(Math.floor(startTime / 60))],
-    [/%wS/g, format_02d(Math.floor(startTime % 60))],
-    [/%ws/g, format_d(Math.floor(startTime))],
-    [/%wf/g, format_d(startTime)],
-    [/%wT/g, format_3f(startTime % 1).slice(2)],
-    [/%mH/g, format_02d(Math.floor(endTime / (60 * 60)))],
-    [/%mh/g, format_d(Math.floor(endTime / (60 * 60)))],
-    [/%mM/g, format_02d(Math.floor((endTime / 60) % 60))],
-    [/%mm/g, format_d(Math.floor(endTime / 60))],
-    [/%mS/g, format_02d(Math.floor(endTime % 60))],
-    [/%ms/g, format_d(Math.floor(endTime))],
-    [/%mf/g, format_d(endTime)],
-    [/%mT/g, format_3f(endTime % 1).slice(2)],
-    [/%f/g, mp.get_property("filename", "")],
-    [/%F/g, mp.get_property("filename/no-ext", "")],
     [/%s/g, showTimePath(startTime)],
     [/%S/g, showTimePath(startTime, { ms: false })],
     [/%e/g, showTimePath(endTime)],
     [/%E/g, showTimePath(endTime, { ms: false })],
-    [/%T/g, mp.get_property("media-title", "")],
     [
       /%M/g,
       mp.get_property_native("aid") &&
       !mp.get_property_bool("mute") &&
-      hasAudioCodec
+      format.audioCodec
         ? "-audio"
         : "",
     ],
@@ -172,51 +53,21 @@ export function formatFilename(
       /%R/g,
       options.scale_height !== -1
         ? `-${options.scale_height}p`
-        : `-${mp.get_property_native("height")}p`,
+        : `-${mp.get_property_number("height")}p`,
     ],
-    [/%mb/g, options.target_filesize / 1000 + ""],
-    [/%t%/g, "%"],
   ];
 
   let filename = options.output_template;
-  for (const [format, value] of REPLACE_FIRST) {
-    filename = filename.replace(format, value);
-  }
-  for (const [format, value] of replaceTable) {
-    filename = filename.replace(format, value);
+  for (const [regex, value] of replaceTable) {
+    filename = filename.replace(regex, value);
   }
 
-  if (mp.get_property_bool("demuxer-via-network", false)) {
-    filename = filename.replace(/%X\{([^}]*)\}/g, "$1");
-    filename = filename.replace(/%x/g, "");
-  } else {
-    const f = mp.get_property("filename", "");
-    let x = mp.get_property("stream-open-filename", "");
-    if (StringEndsWith(x, f)) {
-      x = x.slice(0, -f.length);
-    }
-    filename = filename.replace(/%X\{[^}]*\}/g, x);
-    filename = filename.replace(/%x/g, x);
-  }
-
-  filename = expand_properties(filename, "%");
-
-  // Time expansion
-  // FIXME: SyntaxError: regular expression: too many character class ranges
-  // const formats = matchAll(
-  //   filename,
-  //   /%t([aAbBcCdDeFgGhHIjmMnprRStTuUVwWxXyYzZ])/g
-  // );
-  // for (const match of formats) {
-  //   const format = match[1];
-  //   // XXX: gsub in Lua, but single replace should be enough?
-  //   filename = filename.replace("%t" + format, lua_os_date("%" + format));
-  // }
+  filename = mp.command_native(["expand-text", filename]) as string;
 
   // Remove invalid chars
   // Windows: < > : " / \ | ? *
   // Linux: /
   filename = filename.replace(/[<>:"\/\\|?*]/g, "");
 
-  return `${filename}.${videoFormat.outputExtension}`;
+  return `${filename}.${format.outputExtension}`;
 }
