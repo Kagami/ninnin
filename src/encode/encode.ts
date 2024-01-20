@@ -1,10 +1,9 @@
 import Ass from "../ass";
 import Page from "../page/page";
 import { getErrMsg, message } from "../utils";
-import options from "../options";
 import { type Format, getCurrentFormat } from "./formats";
 import { type Region } from "../video-to-screen";
-import { buildCommand } from "./cmd";
+import { buildCommand, shouldTwoPass } from "./cmd";
 import { remove_file } from "../os";
 import { MPVEncode, isCancelled } from "./mpv";
 import { seconds_to_time_string } from "../pretty";
@@ -90,16 +89,12 @@ function showErrorMsg(err: unknown) {
   }
 }
 
-function shouldTwoPass(format: Format) {
-  if (options.target_filesize) return format.twoPassSupported;
-  return format.twoPassPreferable;
-}
-
 async function encodeInner(
   startTime: number,
   endTime: number,
   format: Format,
   args: string[],
+  argsPass1: string[],
   outPath: string
 ) {
   const ewp = new EncodeWithProgress(startTime, endTime);
@@ -107,15 +102,8 @@ async function encodeInner(
 
   if (shouldTwoPass(format)) {
     pass = 1; // first pass
-    const argsPass1 = args.slice();
-    argsPass1.push(...format.getPass1Flags(outPath));
-    // FIXME: encode 1pass to /dev/null
     await ewp.startEncode(pass, argsPass1, outPath);
-
     pass = 2; // second pass
-    args.push(...format.getPass2Flags(outPath));
-  } else {
-    args.push(...format.getPass0Flags(outPath));
   }
 
   await ewp.startEncode(pass, args, outPath);
@@ -129,12 +117,13 @@ export async function doEncode(
 ) {
   const cmdRes = buildCommand(region, origStartTime, origEndTime);
   if (!cmdRes) return;
-  const { args, isLive, livePath, outPath, startTime, endTime } = cmdRes;
+  const { args, argsPass1, isLive, livePath, outPath, startTime, endTime } =
+    cmdRes;
   const format = getCurrentFormat();
 
   try {
     // emit_event("encode-started");
-    await encodeInner(startTime, endTime, format, args, outPath);
+    await encodeInner(startTime, endTime, format, args, argsPass1, outPath);
     message("Encoded successfully!");
     // emit_event("encode-finished", "success");
   } catch (err) {

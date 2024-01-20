@@ -44,8 +44,8 @@ export class Format {
     return [`--oac=${this.audioCodec}`];
   }
 
-  // A list of flags, to be appended to the command line.
-  getPostFlags() {
+  // Container-specific flags
+  getMuxerFlags() {
     return [] as string[];
   }
 
@@ -99,7 +99,7 @@ class X264 extends Format {
     }
   }
 
-  getPostFlags() {
+  getMuxerFlags() {
     return ["--ofopts-add=movflags=+faststart"];
   }
 
@@ -138,6 +138,7 @@ class X265 extends Format {
     return [
       `--ovc=${this.videoCodec}`,
       `--ovcopts-add=preset=${options.x265_preset}`,
+      `--ovcopts-add=codec_tag=0x31637668`, // hvc1 tag, for compatibility with Apple devices
     ];
   }
 
@@ -150,7 +151,7 @@ class X265 extends Format {
     }
   }
 
-  getPostFlags() {
+  getMuxerFlags() {
     return ["--ofopts-add=movflags=+faststart"];
   }
 
@@ -219,7 +220,7 @@ class HEVC_VTB extends Format {
     return ["--oac=aac_at", "--oacopts-add=aac_at_mode=cvbr"];
   }
 
-  getPostFlags() {
+  getMuxerFlags() {
     return ["--ofopts-add=movflags=+faststart"];
   }
 }

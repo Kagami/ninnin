@@ -1,32 +1,26 @@
-// OS-dependent helpers
+/** OS-dependent helpers. */
 
 import type { MP } from "mpv.d.ts";
 
-let platformInited = false;
-let platform: string;
+let platform: string | undefined;
 
 export function getPlatform() {
-  if (platformInited) return platform;
+  if (platform !== undefined) return platform;
   platform = mp.get_property("platform", "linux");
-  platformInited = true;
   return platform;
 }
 
 // FIXME: lacks in mp.utils: https://github.com/mpv-player/mpv/issues/13305
 export function remove_file(path: string, { silentErrors = false } = {}) {
-  if (getPlatform() === "windows") {
-    mp.command_native({
-      name: "subprocess",
-      args: ["del", path],
-      playback_only: false,
-      capture_stderr: silentErrors,
-    } as MP.Cmd.SubprocessArgs);
-  } else {
-    mp.command_native({
-      name: "subprocess",
-      args: ["rm", path],
-      playback_only: false,
-      capture_stderr: silentErrors,
-    } as MP.Cmd.SubprocessArgs);
-  }
+  const args = getPlatform() === "windows" ? ["del", path] : ["rm", path];
+  mp.command_native({
+    name: "subprocess",
+    args,
+    playback_only: false,
+    capture_stderr: silentErrors,
+  } as MP.Cmd.SubprocessArgs);
+}
+
+export function getNullPath() {
+  return getPlatform() === "windows" ? "NUL" : "/dev/null";
 }

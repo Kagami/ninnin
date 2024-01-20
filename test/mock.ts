@@ -79,6 +79,8 @@ const mp = {
         return "";
       case "deinterlace":
         return "no";
+      case "platform":
+        return "linux";
     }
     throw new Error("get_property: " + prop);
   },

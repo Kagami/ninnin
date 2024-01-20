@@ -6,6 +6,7 @@ import options from "../options";
 import { byteLength, message, stripProtocol } from "../utils";
 import { ObjectEntries, StringStartsWith } from "../lib/helpers";
 import { formatFilename, seconds_to_time_string } from "../pretty";
+import { getNullPath } from "../os";
 
 type Track = MP.Prop.Track;
 interface ActiveTracks {
@@ -381,6 +382,11 @@ export function getOutPath(startTime: number, endTime: number) {
   return mp.utils.join_path(dir, formatted_filename);
 }
 
+export function shouldTwoPass(format: Format) {
+  if (options.target_filesize) return format.twoPassSupported;
+  return format.twoPassPreferable;
+}
+
 export function buildCommand(
   region: Region,
   origStartTime: number,
@@ -486,8 +492,6 @@ export function buildCommand(
     args.push(...get_video_encode_flags(format, region));
   }
 
-  args.push(...format.getPostFlags());
-
   if (options.write_metadata_title) {
     args.push(...get_metadata_flags());
   }
@@ -498,10 +502,25 @@ export function buildCommand(
   }
 
   const outPath = getOutPath(origStartTime, origEndTime);
+
+  // finalize pass 1 flags
+  const argsPass1 = args.slice();
+  argsPass1.push(...format.getPass1Flags(outPath));
+  argsPass1.push("--of=null");
+  argsPass1.push(`--o=${getNullPath()}`);
+
+  // finalize pass 0/2 flags
+  if (shouldTwoPass(format)) {
+    args.push(...format.getPass2Flags(outPath));
+  } else {
+    args.push(...format.getPass0Flags(outPath));
+  }
+  args.push(...format.getMuxerFlags());
   args.push(`--o=${outPath}`);
 
   return {
     args,
+    argsPass1,
     isLive,
     livePath,
     outPath,

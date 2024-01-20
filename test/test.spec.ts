@@ -100,10 +100,14 @@ test("buildCommand x264/aac", () => {
     "--sub-delay=0.000000",
     "--video-rotate=0",
     "--deinterlace=no",
-    "--ofopts-add=movflags=+faststart",
     "--oset-metadata=title=%14%test 비디오",
+    "--ofopts-add=movflags=+faststart",
     "--o=/home/user/Downloads/video-[00.01.417-00.03.042].mp4",
   ]);
+
+  options.target_filesize = 1024;
+  const cmdRes2 = buildCommand(new Region(), START_TIME, END_TIME)!;
+  deepEqual(cmdRes.argsPass1.slice(-2), ["--of=null", "--o=/dev/null"]);
 });
 
 test("buildCommand x264/aac_at", () => {
@@ -127,6 +131,7 @@ test("buildCommand x265/aac_at", () => {
     "--no-pause",
     "--ovc=libx265",
     "--ovcopts-add=preset=fast",
+    "--ovcopts-add=codec_tag=0x31637668",
     "--ovcopts-add=crf=20",
     "--oac=aac_at",
     "--oacopts-add=aac_at_mode=cvbr",
@@ -142,8 +147,9 @@ test("buildCommand x265/aac_at", () => {
     "--video-rotate=0",
     "--deinterlace=no",
     "--vf-add=format=yuv420p10le",
-    "--ofopts-add=movflags=+faststart",
     "--oset-metadata=title=%14%test 비디오",
+    "--ovcopts-add=x265-params=log-level=warning",
+    "--ofopts-add=movflags=+faststart",
     "--o=/home/user/Downloads/video-[00.01.417-00.03.042].mp4",
   ]);
 });
@@ -178,8 +184,8 @@ test("buildCommand hevc_vtb/aac_at", () => {
     "--video-rotate=0",
     "--deinterlace=no",
     "--vf-add=format=p010le",
-    "--ofopts-add=movflags=+faststart",
     "--oset-metadata=title=%14%test 비디오",
+    "--ofopts-add=movflags=+faststart",
     "--o=/home/user/Downloads/video-[00.01.417-00.03.042].mp4",
   ]);
 });
