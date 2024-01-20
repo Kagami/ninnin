@@ -63,7 +63,7 @@ const mp = {
         return "test 비디오";
       case "sub-ass-override":
         return "yes";
-      case "sub-ass-force-style":
+      case "sub-ass-style-overrides":
         return "";
       case "sub-ass-vsfilter-aspect-compat":
         return "yes";

@@ -1,3 +1,5 @@
+/** Building encoding command arguments. */
+
 import type { MP } from "mpv.d.ts";
 
 import { type Format, getCurrentFormat } from "./formats";
@@ -151,14 +153,10 @@ function get_contrast_brightness_and_saturation_filters() {
   ];
 }
 
-function append_property(
-  out: string[],
-  property_name: string,
-  option_name = property_name
-) {
+function append_property(out: string[], property_name: string) {
   const prop = mp.get_property(property_name);
   if (prop) {
-    out.push(`--${option_name}=${prop}`);
+    out.push(`--${property_name}=${prop}`);
   }
 }
 
@@ -177,20 +175,20 @@ function append_property(
 //   }
 // }
 
-// Get the current playback options, trying to match how the video is being played.
-// TODO: don't pass default values?
+/**
+ * Get the current playback options, trying to match how the video is being played.
+ */
 function get_playback_options() {
   const ret: string[] = [];
   append_property(ret, "sub-ass-override");
-  append_property(ret, "sub-ass-force-style");
+  append_property(ret, "sub-ass-style-overrides");
   append_property(ret, "sub-ass-vsfilter-aspect-compat");
   append_property(ret, "sub-auto");
   append_property(ret, "sub-pos");
   append_property(ret, "sub-delay");
   append_property(ret, "video-rotate");
-  append_property(ret, "ytdl-format");
   append_property(ret, "deinterlace");
-
+  append_property(ret, "ytdl-format");
   return ret;
 }
 
