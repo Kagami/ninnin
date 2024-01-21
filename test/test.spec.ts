@@ -99,6 +99,7 @@ test("x265 twopass", () => {
 });
 
 test("buildCommand x264/aac", () => {
+  options.output_format = "x264";
   deepEqual(getArgs(), [
     "mpv",
     "/home/user/video.mp4",

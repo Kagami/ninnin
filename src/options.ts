@@ -18,7 +18,7 @@ const DEFAULT_OPTIONS = {
   output_template: "${filename/no-ext}-[%s-%e]",
 
   // Sets the output format, from a few predefined ones.
-  output_format: "x264",
+  output_format: "svtav1",
   // Scale video to a certain height, keeping the aspect ratio. -1 disables it.
   scale_height: -1,
   // Target filesize, in kB. This will be used to calculate the bitrate
