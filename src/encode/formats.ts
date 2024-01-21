@@ -227,7 +227,13 @@ class SVTAV1 extends Format {
   twoPassSupported = false; // FIXME: check
 
   getVideoFlags() {
-    return [`--ovc=${this.videoCodec}`, "--ovcopts-add=g=300"];
+    return [
+      `--ovc=${this.videoCodec}`,
+      // https://gitlab.com/AOMediaCodec/SVT-AV1/-/blob/master/Docs/Ffmpeg.md
+      // "film-grain" too slow
+      "--ovcopts-add=svtav1-params=tune=0",
+      "--ovcopts-add=g=300",
+    ];
   }
   getVideoQualityFlags() {
     // `--ovcopts-add=b=0` seems to be not necessary in recent FFmpeg:

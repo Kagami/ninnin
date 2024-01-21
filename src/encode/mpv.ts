@@ -30,7 +30,12 @@ export class MPVEncode {
 
     this.waitPromise = new Promise((resolve, reject) => {
       this.asyncID = mp.command_native_async(
-        { name: "subprocess", args, playback_only: false },
+        {
+          name: "subprocess",
+          args,
+          playback_only: false,
+          env: this.getEnv(),
+        } as MP.Cmd.SubprocessArgs,
         (success, result, error) => {
           // FIXME: cleanup partial file on error?
           // FIXME: cleanup log on player quit?
@@ -47,6 +52,11 @@ export class MPVEncode {
         }
       );
     });
+  }
+
+  getEnv() {
+    // https://gitlab.com/AOMediaCodec/SVT-AV1/-/blob/ef1f071/Source/Lib/Common/Codec/EbLog.h#L18
+    return mp.utils.get_env_list().concat("SVT_LOG=2");
   }
 
   /**
