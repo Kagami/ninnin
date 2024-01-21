@@ -21,7 +21,7 @@ TODO.
 
 ### Linux
 
-Install mpv (check out [mpv Linux packages](https://mpv.io/installation/#:~:text=Linux%20packages)).  
+Install mpv (check out [Linux packages](https://mpv.io/installation/#:~:text=Linux%20packages)).  
 To install nightly build of ninnin (for latest commit), run:
 
 ```bash
@@ -49,6 +49,14 @@ Which format to use for publishing on the web (2024)?
 H.265 if you care about Apple users more, AV1 if you care about Firefox users
 more. However M3+/iPhone 15+ support AV1 and it's a bit more efficient than
 H.265 so it's more future-proof.
+
+## Development
+
+You need fresh nodejs installed.
+
+- `npm run build` to build `ninnin.js`
+- `npm start` to watch updates and rebuild on changes
+- `npm test` to run tests
 
 ## License
 
