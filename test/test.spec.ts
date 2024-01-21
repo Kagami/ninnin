@@ -215,7 +215,6 @@ test("buildCommand svtav1/opus", () => {
     "--no-pause",
     "--ovc=libsvtav1",
     "--ovcopts-add=svtav1-params=tune=0",
-    "--ovcopts-add=g=300",
     "--ovcopts-add=crf=30",
     "--oac=libopus",
     "--oacopts-add=b=192k",

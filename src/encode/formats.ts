@@ -227,12 +227,13 @@ class SVTAV1 extends Format {
   twoPassSupported = false; // FIXME: check
 
   getVideoFlags() {
+    // https://gitlab.com/AOMediaCodec/SVT-AV1/-/blob/master/Docs/Parameters.md#gop-size-and-type-options
+    // keyint = -2 = ~5s by default, should be ok
     return [
       `--ovc=${this.videoCodec}`,
       // https://gitlab.com/AOMediaCodec/SVT-AV1/-/blob/master/Docs/Ffmpeg.md
       // "film-grain" too slow
       "--ovcopts-add=svtav1-params=tune=0",
-      "--ovcopts-add=g=300",
     ];
   }
   getVideoQualityFlags() {
