@@ -26,17 +26,35 @@ const DEFAULT_OPTIONS = {
   // to 0, which might enable constant quality modes, depending on the
   // video codec that's used (VP8 and VP9, for example).
   target_filesize: 0,
-  // Presets, applicable to some encoders.
-  x264_preset: "slow",
-  // Recommended fast and slow here:
-  // https://kokomins.wordpress.com/2019/10/10/anime-encoding-guide-for-x265-and-why-to-never-use-flac/
-  x265_preset: "fast",
-  // Constant Rate Factor (CRF). The value meaning and limits may change,
-  // from codec to codec. Set to -1 to disable.
-  crf: 20,
+
+  // ### Quality-specific settings:
+  // https://trac.ffmpeg.org/wiki/Encode/H.264
+  // https://trac.ffmpeg.org/wiki/Encode/H.265
+  // CRF for x264/x265. 18=visually lossless. might consider 23-25 for smaller files
+  x_crf: 20,
+  // https://trac.ffmpeg.org/wiki/HWAccelIntro#VideoToolbox
   // https://stackoverflow.com/a/69668183
-  // -q:v 65 is "acceptable"
-  vtb_qscale: 65,
+  // CRF for VideoToolBox. qscale=65 is "acceptable"
+  vtb_crf: 65,
+  // https://trac.ffmpeg.org/wiki/Encode/AV1
+  // CRF for libaom/svt. av1_crf23 ~= x264_crf19, 30 ~= 24? 0-51 vs 0-63 ranges
+  av1_crf: 30,
+
+  // ### Speed-specific settings
+  // pretty big files but fast encoding. for better size/quality consider hevc/av1
+  x264_preset: "slow",
+  // https://kokomins.wordpress.com/2019/10/10/anime-encoding-guide-for-x265-and-why-to-never-use-flac/
+  // fast and slow are sweet spots. althoguh fast/medium have very similar performance and medium is better quality
+  x265_preset: "medium",
+  // https://gitlab.com/AOMediaCodec/SVT-AV1/-/blob/master/Docs/Ffmpeg.md
+  // https://gitlab.com/AOMediaCodec/SVT-AV1/-/blob/master/Docs/Parameters.md
+  // https://gitlab.com/AOMediaCodec/SVT-AV1/-/blob/master/Docs/svt-av1_encoder_user_guide.md#sample-command-lines
+  // 10 is faster than x265_fast and better VMAF. 8 and 9 also fast enough.
+  svtav1_preset: 10,
+
+  // 10-bit encoding for 8-bit content (HEVC, AV1)
+  // "Encoding with 10-bit depth results in more accurate colors and fewer artifacts with minimal increase in file size"
+  force_10bit: false,
   // Change the FPS of the output video, dropping or duplicating frames as needed.
   // -1 means the FPS will be unchanged from the source.
   fps: -1,

@@ -154,6 +154,7 @@ export function setMock() {
 }
 
 export function enableVideoToolbox() {
+  resetCaps();
   videoToolboxEnabled = true;
 }
 

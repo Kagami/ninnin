@@ -13,6 +13,13 @@ import { setMock, enableVideoToolbox, resetOpts, setFile } from "./mock";
 const START_TIME = 1.41708333333333;
 const END_TIME = 3.0420083333333;
 
+function getCmd() {
+  return buildCommand(new Region(), START_TIME, END_TIME)!;
+}
+function getArgs() {
+  return getCmd().args;
+}
+
 before(() => {
   setMock();
 });
@@ -92,8 +99,7 @@ test("x265 twopass", () => {
 });
 
 test("buildCommand x264/aac", () => {
-  const cmdRes = buildCommand(new Region(), START_TIME, END_TIME)!;
-  deepEqual(cmdRes.args, [
+  deepEqual(getArgs(), [
     "mpv",
     "/home/user/video.mp4",
     "--no-terminal",
@@ -122,22 +128,15 @@ test("buildCommand x264/aac", () => {
   ]);
 
   options.target_filesize = 1024;
-  const cmdRes2 = buildCommand(new Region(), START_TIME, END_TIME)!;
-  deepEqual(cmdRes.argsPass1.slice(-2), ["--of=null", "--o=/dev/null"]);
-});
-
-test("buildCommand x264/aac_at", () => {
+  deepEqual(getCmd().argsPass1.slice(-2), ["--of=null", "--o=/dev/null"]);
   enableVideoToolbox();
-  const cmdRes = buildCommand(new Region(), START_TIME, END_TIME)!;
-  const cmd = cmdRes.args;
-  deepEqual(cmd.includes("--oac=aac_at"), true, JSON.stringify(cmd));
+  deepEqual(getArgs().includes("--oac=aac_at"), true);
 });
 
 test("buildCommand x265/aac_at", () => {
   enableVideoToolbox();
   options.output_format = "x265";
-  const cmdRes = buildCommand(new Region(), START_TIME, END_TIME)!;
-  deepEqual(cmdRes.args, [
+  deepEqual(getArgs(), [
     "mpv",
     "/home/user/video.mp4",
     "--no-terminal",
@@ -146,7 +145,7 @@ test("buildCommand x265/aac_at", () => {
     "--loop-file=no",
     "--no-pause",
     "--ovc=libx265",
-    "--ovcopts-add=preset=fast",
+    "--ovcopts-add=preset=medium",
     "--ovcopts-add=codec_tag=0x31637668",
     "--ovcopts-add=crf=20",
     "--oac=aac_at",
@@ -162,7 +161,6 @@ test("buildCommand x265/aac_at", () => {
     "--sub-delay=0.000000",
     "--video-rotate=0",
     "--deinterlace=no",
-    "--vf-add=format=yuv420p10le",
     "--oset-metadata=title=%14%test 비디오",
     "--ovcopts-add=x265-params=log-level=warning",
     "--ofopts-add=movflags=+faststart",
@@ -173,8 +171,7 @@ test("buildCommand x265/aac_at", () => {
 test("buildCommand hevc_vtb/aac_at", () => {
   enableVideoToolbox();
   options.output_format = "hevc_vtb";
-  const cmdRes = buildCommand(new Region(), START_TIME, END_TIME)!;
-  deepEqual(cmdRes.args, [
+  deepEqual(getArgs(), [
     "mpv",
     "/home/user/video.mp4",
     "--no-terminal",
@@ -199,9 +196,51 @@ test("buildCommand hevc_vtb/aac_at", () => {
     "--sub-delay=0.000000",
     "--video-rotate=0",
     "--deinterlace=no",
-    "--vf-add=format=p010le",
     "--oset-metadata=title=%14%test 비디오",
     "--ofopts-add=movflags=+faststart",
     "--o=/home/user/Downloads/video-[00.01.417-00.03.042].mp4",
   ]);
+});
+
+test("buildCommand svtav1/opus", () => {
+  enableVideoToolbox();
+  options.output_format = "svtav1";
+  deepEqual(getArgs(), [
+    "mpv",
+    "/home/user/video.mp4",
+    "--no-terminal",
+    "--start=0:00:01.417",
+    "--end=0:00:03.042",
+    "--loop-file=no",
+    "--no-pause",
+    "--ovc=libsvtav1",
+    "--ovcopts-add=g=300",
+    "--ovcopts-add=crf=30",
+    "--oac=libopus",
+    "--oacopts-add=b=192k",
+    "--vid=1",
+    "--aid=1",
+    "--sid=no",
+    "--sub-ass-override=yes",
+    "--sub-ass-vsfilter-aspect-compat=yes",
+    "--sub-auto=exact",
+    "--sub-pos=100.000000",
+    "--sub-delay=0.000000",
+    "--video-rotate=0",
+    "--deinterlace=no",
+    "--oset-metadata=title=%14%test 비디오",
+    "--ofopts-add=movflags=+faststart",
+    "--o=/home/user/Downloads/video-[00.01.417-00.03.042].mp4",
+  ]);
+});
+
+test("10-bit", () => {
+  enableVideoToolbox();
+  options.output_format = "x265";
+  options.force_10bit = true;
+  deepEqual(getArgs().includes("--vf-add=format=yuv420p10le"), true);
+  options.output_format = "hevc_vtb";
+  deepEqual(getArgs().includes("--vf-add=format=p010le"), true);
+  options.output_format = "svtav1";
+  deepEqual(getArgs().includes("--vf-add=format=yuv420p10le"), true);
 });

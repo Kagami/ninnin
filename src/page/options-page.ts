@@ -39,29 +39,7 @@ export default class EncodeOptionsPage extends Page {
         "0": "quality",
       },
     };
-    const presetOpts: ListOpts<string> = [
-      ["ultrafast"],
-      ["superfast"],
-      ["veryfast"],
-      ["faster"],
-      ["fast"],
-      ["medium"],
-      ["slow"],
-      ["slower"],
-      ["veryslow"],
-      ["placebo"],
-    ];
-    const crfOpts = {
-      step: 1,
-      min: 0,
-      max: 51,
-    };
-    const vtbOpts = {
-      step: 1,
-      min: 0,
-      max: 100,
-    };
-    const abOpts = {
+    const audiobOpts = {
       step: 64,
       min: 64,
       max: 320,
@@ -77,6 +55,39 @@ export default class EncodeOptionsPage extends Page {
       [120],
       [240],
     ];
+
+    const xPresetOpts: ListOpts<string> = [
+      ["ultrafast"],
+      ["superfast"],
+      ["veryfast"],
+      ["faster"],
+      ["fast"],
+      ["medium"],
+      ["slow"],
+      ["slower"],
+      ["veryslow"],
+      ["placebo"],
+    ];
+    const svtPresetOpts = {
+      step: 1,
+      min: 0,
+      max: 12,
+    };
+    const xCrfOpts = {
+      step: 1,
+      min: 0,
+      max: 51,
+    };
+    const vtbCrfOpts = {
+      step: 1,
+      min: 0,
+      max: 100,
+    };
+    const av1CrfOpts = {
+      step: 1,
+      min: 0,
+      max: 63,
+    };
 
     // const gifDitherOpts: ListOpts<number> = [
     //   [0, "bayer_scale 0"],
@@ -95,14 +106,17 @@ export default class EncodeOptionsPage extends Page {
       ["scale_height", new EncOptionList("Height", options.scale_height, scaleHeightOpts)],
       ["target_filesize", new EncOptionInt("File size", options.target_filesize, filesizeOpts)],
 
-      ["x264_preset", new EncOptionList("Preset", options.x264_preset, presetOpts, () => this.shownX264Opts())],
-      ["x265_preset", new EncOptionList("Preset", options.x265_preset, presetOpts, () => this.shownX265Opts())],
+      ["x264_preset", new EncOptionList("Preset", options.x264_preset, xPresetOpts, () => this.x264Selected())],
+      ["x265_preset", new EncOptionList("Preset", options.x265_preset, xPresetOpts, () => this.x265Selected())],
+      ["svtav1_preset", new EncOptionInt("Preset", options.svtav1_preset, svtPresetOpts, () => this.svtav1Selected())],
 
-      ["crf", new EncOptionInt("Video quality", options.crf, crfOpts, () => this.shownCrfOpt())],
-      ["vtb_qscale", new EncOptionInt("Video quality", options.vtb_qscale, vtbOpts, () => this.shownVtbOpt())],
+      ["x_crf", new EncOptionInt("Video quality", options.x_crf, xCrfOpts, () => this.xCrfVisible())],
+      ["vtb_crf", new EncOptionInt("Video quality", options.vtb_crf, vtbCrfOpts, () => this.vtbCrfVisible())],
+      ["av1_crf", new EncOptionInt("Video quality", options.av1_crf, av1CrfOpts, () => this.av1CrfVisible())],
 
-      ["audio_bitrate", new EncOptionInt("Audio bitrate", options.audio_bitrate, abOpts)],
+      ["audio_bitrate", new EncOptionInt("Audio bitrate", options.audio_bitrate, audiobOpts)],
       ["fps", new EncOptionList("FPS", options.fps, fpsOpts)],
+      ["force_10bit", new EncOptionBool("Force 10-bit", options.force_10bit, null)],
 
       ["write_metadata_title", new EncOptionBool("Write title", options.write_metadata_title, null)],
       // ["apply_current_filters", new EncOptionBool("Apply Current Video Filters", options.apply_current_filters, null)],
@@ -124,23 +138,29 @@ export default class EncodeOptionsPage extends Page {
     };
   }
 
-  formatOpt() {
+  formatName(): string {
     return this.optionByName.output_format.getValue();
   }
-  filesizeOpt() {
+  filesize() {
     return this.optionByName.target_filesize.getValue();
   }
-  shownX264Opts() {
-    return this.formatOpt() === "x264";
+  x264Selected() {
+    return this.formatName() === "x264";
   }
-  shownX265Opts() {
-    return this.formatOpt() === "x265";
+  x265Selected() {
+    return this.formatName() === "x265";
   }
-  shownCrfOpt() {
-    return this.formatOpt() !== "hevc_vtb" && !this.filesizeOpt();
+  svtav1Selected() {
+    return this.formatName() === "svtav1";
   }
-  shownVtbOpt() {
-    return this.formatOpt() === "hevc_vtb" && !this.filesizeOpt();
+  xCrfVisible() {
+    return (this.x264Selected() || this.x265Selected()) && !this.filesize();
+  }
+  vtbCrfVisible() {
+    return this.formatName() === "hevc_vtb" && !this.filesize();
+  }
+  av1CrfVisible() {
+    return this.svtav1Selected() && !this.filesize();
   }
 
   getCurrentOption() {

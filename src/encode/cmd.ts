@@ -444,7 +444,7 @@ export function buildCommand(
   );
   if (hasVideoTrack) {
     args.push(...format.getVideoFlags());
-    // FIXME: CQ mode for libvpx/libaom
+    // FIXME: CQ mode? (crf + max bitrate)
     if (vbitrate) {
       args.push(`--ovcopts-add=b=${vbitrate}k`);
     } else {

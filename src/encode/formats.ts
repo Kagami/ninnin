@@ -9,7 +9,9 @@ export class Format {
   audioCodec = "";
   outputExtension = "";
   twoPassSupported = true;
-  twoPassPreferable = false; // libvpx/libaom have better resulting quality with 2-pass
+  twoPassPreferable = false; // FIXME: use 2-pass for AV1+CRF?
+  highBitDepthSupported = true;
+  hwAccelerated = false;
 
   getDisplayName() {
     return this.displayName;
@@ -23,7 +25,19 @@ export class Format {
 
   // Similar to getPreFilters, but after our transformations.
   getPostFilters() {
-    return [] as string[];
+    // Quality should be a bit better with Main10 profile even on 8bit content.
+    // FIXME: is that no-op in case of 10bit content?
+    // FIXME: maybe should be before scale for better quality or resize?
+    if (options.force_10bit && this.highBitDepthSupported) {
+      if (this.hwAccelerated) {
+        // like NV12 with 10bpp per component (packed)
+        return ["format=p010le"];
+      } else {
+        return ["format=yuv420p10le"];
+      }
+    } else {
+      return [];
+    }
   }
 
   // Video codec flags
@@ -31,12 +45,7 @@ export class Format {
     return [`--ovc=${this.videoCodec}`];
   }
   getVideoQualityFlags() {
-    // set video bitrate to 0. This might enable constant quality, or some
-    // other encoding modes, depending on the codec.
-    // command.push(`--ovcopts-add=b=0`); FIXME: libvpx/libaom
-    // FIXME: is it ok to use global options here?
-    if (options.crf < 0) return [];
-    return [`--ovcopts-add=crf=${options.crf}`];
+    return [`--ovcopts-add=crf=${options.x_crf}`];
   }
 
   // Audio codec flags
@@ -46,7 +55,11 @@ export class Format {
 
   // Container-specific flags
   getMuxerFlags() {
-    return [] as string[];
+    if (this.outputExtension === "mp4") {
+      return ["--ofopts-add=movflags=+faststart"];
+    } else {
+      return [];
+    }
   }
 
   // Two pass routines
@@ -78,6 +91,7 @@ class X264 extends Format {
   videoCodec = "libx264";
   audioCodec = "aac";
   outputExtension = "mp4";
+  highBitDepthSupported = false; // High10 is too marginal
 
   getDisplayName(): string {
     return getCaps().has_aac_at ? "x264/aac_at" : "x264/aac";
@@ -90,6 +104,8 @@ class X264 extends Format {
     ];
   }
 
+  // FIXME: we use mp4 container, maybe copy AAC audio instead of re-encoding?
+  // Although 192kbps should be almost transparent with AudioToolbox.
   getAudioFlags() {
     if (getCaps().has_aac_at) {
       // FIXME: TVBR vs CVBR?
@@ -97,10 +113,6 @@ class X264 extends Format {
     } else {
       return ["--oac=aac"];
     }
-  }
-
-  getMuxerFlags() {
-    return ["--ofopts-add=movflags=+faststart"];
   }
 
   getPassCommonFlags(outPath: string) {
@@ -127,13 +139,6 @@ class X265 extends Format {
     return getCaps().has_aac_at ? "x265/aac_at" : "x265/aac";
   }
 
-  getPostFilters() {
-    // Quality should be a bit better with Main10 profile even on 8bit content.
-    // FIXME: is that no-op in case of 10bit content?
-    // FIXME: maybe should be before scale for better quality or resize?
-    return ["format=yuv420p10le"];
-  }
-
   getVideoFlags() {
     return [
       `--ovc=${this.videoCodec}`,
@@ -149,10 +154,6 @@ class X265 extends Format {
     } else {
       return ["--oac=aac"];
     }
-  }
-
-  getMuxerFlags() {
-    return ["--ofopts-add=movflags=+faststart"];
   }
 
   private getCommonX265Params() {
@@ -191,16 +192,13 @@ class X265 extends Format {
 }
 
 class HEVC_VTB extends Format {
-  protected displayName = "hevc_vtb/aac_at";
+  displayName = "hevc_vtb/aac_at";
   videoCodec = "hevc_videotoolbox";
   audioCodec = "aac";
   outputExtension = "mp4";
   twoPassSupported = false; // FIXME: check
+  hwAccelerated = true;
   private readonly FF_QP2LAMBDA = 118;
-
-  getPostFilters() {
-    return ["format=p010le"];
-  }
 
   getVideoFlags() {
     return [
@@ -209,9 +207,9 @@ class HEVC_VTB extends Format {
     ];
   }
   getVideoQualityFlags() {
-    if (options.vtb_qscale < 0) return [];
+    if (options.vtb_crf < 0) return [];
     return [
-      `--ovcopts-add=global_quality=${options.vtb_qscale * this.FF_QP2LAMBDA}`,
+      `--ovcopts-add=global_quality=${options.vtb_crf * this.FF_QP2LAMBDA}`,
       "--ovcopts-add=flags=+qscale",
     ];
   }
@@ -219,9 +217,24 @@ class HEVC_VTB extends Format {
   getAudioFlags() {
     return ["--oac=aac_at", "--oacopts-add=aac_at_mode=cvbr"];
   }
+}
 
-  getMuxerFlags() {
-    return ["--ofopts-add=movflags=+faststart"];
+class SVTAV1 extends Format {
+  displayName = "svtav1/opus";
+  videoCodec = "libsvtav1";
+  audioCodec = "libopus";
+  outputExtension = "mp4";
+  twoPassSupported = false; // FIXME: check
+
+  getVideoFlags() {
+    return [`--ovc=${this.videoCodec}`, "--ovcopts-add=g=300"];
+  }
+  getVideoQualityFlags() {
+    // `--ovcopts-add=b=0` seems to be not necessary in recent FFmpeg:
+    // https://trac.ffmpeg.org/wiki/Encode/AV1#ConstrainedQuality
+    // > Note that in FFmpeg versions prior to 4.3, triggering the CRF mode also
+    // > requires setting the bitrate to 0 with -b:v 0.
+    return [`--ovcopts-add=crf=${options.av1_crf}`];
   }
 }
 
@@ -229,6 +242,7 @@ export const formats: [string, Format][] = [
   ["x264", new X264()],
   ["x265", new X265()],
   ["hevc_vtb", new HEVC_VTB()],
+  ["svtav1", new SVTAV1()],
 ];
 export const formatByName = ObjectFromEntries(formats);
 

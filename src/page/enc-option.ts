@@ -17,17 +17,13 @@ import type Ass from "../lib/ass";
 // setValue will be called for the constructor argument.
 // visibleCheckFn is a function to check for visibility, it can be used to hide options based on rules
 export class EncOption<V, O> {
-  protected value: V;
-  protected opts: O;
-  protected displayText: string;
-  protected visibleCheckFn?: () => boolean;
   protected index = 0; // XXX: only for EncListOption but can't initialize it before super() there
 
   constructor(
-    displayText: string,
-    value: V,
-    opts: O,
-    visibleCheckFn?: () => boolean
+    protected displayText: string,
+    protected value: V,
+    protected opts: O,
+    protected visibleCheckFn?: () => boolean
   ) {
     this.displayText = displayText;
     this.opts = opts;
