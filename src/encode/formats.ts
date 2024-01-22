@@ -7,7 +7,7 @@ export class Format {
   protected displayName = "";
   videoCodec = "";
   audioCodec = "";
-  outputExtension = "";
+  outputExtension = "mp4";
   twoPassSupported = true;
   twoPassPreferable = false; // FIXME: use 2-pass for AV1+CRF?
   highBitDepthSupported = true;
@@ -90,7 +90,6 @@ export class Format {
 class X264 extends Format {
   videoCodec = "libx264";
   audioCodec = "aac";
-  outputExtension = "mp4";
   highBitDepthSupported = false; // High10 is too marginal
 
   getDisplayName(): string {
@@ -120,20 +119,19 @@ class X264 extends Format {
     return [`--ovcopts-add=stats=${this.getPassLogPath(outPath)}`];
   }
   getPassFilePaths(outPath: string) {
-    const pathMain = super.getPassLogPath(outPath); // normal log
+    const pathMain = this.getPassLogPath(outPath); // normal log
     const pathMBtree = pathMain + ".mbtree"; // additional mbtree log
     const pathMainTemp = pathMain + ".temp"; // during pass1 run
     const pathMBtreeTemp = pathMBtree + ".temp"; // during pass1 run
     return super
       .getPassFilePaths(outPath)
-      .concat([pathMain, pathMBtree, pathMainTemp, pathMBtreeTemp]);
+      .concat(pathMain, pathMBtree, pathMainTemp, pathMBtreeTemp);
   }
 }
 
 class X265 extends Format {
   videoCodec = "libx265";
   audioCodec = "aac";
-  outputExtension = "mp4";
 
   getDisplayName() {
     return getCaps().has_aac_at ? "x265/aac_at" : "x265/aac";
@@ -187,7 +185,7 @@ class X265 extends Format {
     const pathCUtreeTemp = pathCUtree + ".temp"; // during pass1 run
     return super
       .getPassFilePaths(outPath)
-      .concat([pathMain, pathCUtree, pathMainTemp, pathCUtreeTemp]);
+      .concat(pathMain, pathCUtree, pathMainTemp, pathCUtreeTemp);
   }
 }
 
@@ -195,7 +193,6 @@ class HEVC_VTB extends Format {
   displayName = "hevc_vtb/aac_at";
   videoCodec = "hevc_videotoolbox";
   audioCodec = "aac";
-  outputExtension = "mp4";
   twoPassSupported = false; // FIXME: check
   hwAccelerated = true;
   private readonly FF_QP2LAMBDA = 118;
@@ -223,7 +220,6 @@ class SVTAV1 extends Format {
   displayName = "svtav1/opus";
   videoCodec = "libsvtav1";
   audioCodec = "libopus";
-  outputExtension = "mp4";
   twoPassSupported = false; // FIXME: check
 
   getVideoFlags() {

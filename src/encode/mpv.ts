@@ -54,7 +54,7 @@ export class MPVEncode {
     });
   }
 
-  getEnv() {
+  private getEnv() {
     // https://gitlab.com/AOMediaCodec/SVT-AV1/-/blob/ef1f071/Source/Lib/Common/Codec/EbLog.h#L18
     return mp.utils.get_env_list().concat("SVT_LOG=2");
   }
