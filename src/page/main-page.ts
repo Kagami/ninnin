@@ -9,6 +9,7 @@ import { Region } from "../video-to-screen";
 import { message } from "../utils";
 import { showTime } from "../pretty";
 import Ass from "../lib/ass";
+import ResultPage from "./result-page";
 
 export default class MainPage extends Page {
   private startTime = -1;
@@ -23,7 +24,7 @@ export default class MainPage extends Page {
       "2": this.setEndTime.bind(this),
       "!": this.jumpToStartTime.bind(this),
       "@": this.jumpToEndTime.bind(this),
-      o: this.changeOptions.bind(this),
+      o: this.gotoOptions.bind(this),
       p: this.preview.bind(this),
       e: this.encode.bind(this),
       ESC: this.hide.bind(this),
@@ -123,7 +124,7 @@ export default class MainPage extends Page {
     this.show();
   }
 
-  changeOptions() {
+  gotoOptions() {
     this.hide();
     const encodeOptsPage = new EncodeOptionsPage(this.onNewOptions.bind(this));
     encodeOptsPage.show();
@@ -144,7 +145,7 @@ export default class MainPage extends Page {
     previewPage.show();
   }
 
-  encode() {
+  async encode() {
     this.hide();
     if (this.startTime < 0) {
       message("No start time, aborting");
@@ -158,6 +159,28 @@ export default class MainPage extends Page {
       message("Start time is ahead of end time, aborting");
       return;
     }
-    doEncode(this.region, this.startTime, this.endTime);
+
+    try {
+      // emit_event("encode-started");
+      await doEncode(this.region, this.startTime, this.endTime);
+      // emit_event("encode-finished", "success");
+    } catch (err) {
+      // emit_event("encode-finished", "fail");
+      mp.msg.error(err);
+      this.onEncodeEnded(err);
+      return;
+    }
+    this.onEncodeEnded();
+  }
+
+  onEncodeEnded(err?: unknown) {
+    this.hide();
+    const outPath = getOutPath(this.startTime, this.endTime);
+    const resultPage = new ResultPage(
+      err,
+      outPath,
+      this.gotoOptions.bind(this)
+    );
+    resultPage.show();
   }
 }

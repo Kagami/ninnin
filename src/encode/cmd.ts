@@ -5,7 +5,7 @@ import type { MP } from "mpv.d.ts";
 import { type Format, getCurrentFormat } from "./formats";
 import type { Region } from "../video-to-screen";
 import options from "../options";
-import { byteLength, message, stripProtocol } from "../utils";
+import { byteLength, stripProtocol } from "../utils";
 import { ObjectEntries, StringStartsWith } from "../lib/helpers";
 import { formatFilename, showTime } from "../pretty";
 
@@ -393,10 +393,7 @@ export function buildCommand(
   origEndTime: number
 ) {
   const path = mp.get_property("path");
-  if (!path) {
-    message("No file is being played");
-    return;
-  }
+  if (!path) throw new Error("No file is being played");
 
   const { isLive, livePath, startTime, endTime } = fixLivePathTime(
     path,
@@ -410,15 +407,11 @@ export function buildCommand(
   // Video track is required for Video format but Audio is optional
   const hasVideoCodec = !!format.videoCodec;
   const hasVideoTrack = !!supported_active_tracks.video.length;
-  if (hasVideoCodec && !hasVideoTrack) {
-    message("No video track selected");
-    return;
-  }
+  if (hasVideoCodec && !hasVideoTrack)
+    throw new Error("No video track selected");
   const hasAudioTrack = !!supported_active_tracks.audio.length;
-  if (!hasVideoTrack && !hasAudioTrack) {
-    message("No video and audio tracks selected");
-    return;
-  }
+  if (!hasVideoTrack && !hasAudioTrack)
+    throw new Error("No video and audio tracks selected");
 
   const args = [
     "mpv",

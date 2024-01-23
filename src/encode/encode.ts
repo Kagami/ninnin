@@ -1,11 +1,10 @@
 import Ass from "../lib/ass";
 import Page from "../page/page";
-import { getErrMsg, message } from "../utils";
 import { type Format, getCurrentFormat } from "./formats";
 import { type Region } from "../video-to-screen";
 import { buildCommand, shouldTwoPass } from "./cmd";
 import { remove_file } from "../lib/os";
-import { MPVEncode, isCancelled } from "./mpv";
+import { MPVEncode } from "./mpv";
 import { showTime } from "../pretty";
 
 // Not really a Page, but reusing its functions is pretty useful
@@ -80,15 +79,6 @@ export default class EncodeWithProgress extends Page {
   }
 }
 
-function showErrorMsg(err: unknown) {
-  if (isCancelled(err)) {
-    message("Encode cancelled");
-  } else {
-    message("Encode failed: " + getErrMsg(err));
-    mp.msg.error(err);
-  }
-}
-
 async function encodeInner(
   startTime: number,
   endTime: number,
@@ -107,7 +97,6 @@ async function encodeInner(
   }
 
   await ewp.startEncode(pass, args, outPath);
-  message("Encoded successfully!");
 }
 
 export async function doEncode(
@@ -115,20 +104,12 @@ export async function doEncode(
   origStartTime: number,
   origEndTime: number
 ) {
-  const cmdRes = buildCommand(region, origStartTime, origEndTime);
-  if (!cmdRes) return;
   const { args, argsPass1, isLive, livePath, outPath, startTime, endTime } =
-    cmdRes;
+    buildCommand(region, origStartTime, origEndTime);
   const format = getCurrentFormat();
 
   try {
-    // emit_event("encode-started");
     await encodeInner(startTime, endTime, format, args, argsPass1, outPath);
-    message("Encoded successfully!");
-    // emit_event("encode-finished", "success");
-  } catch (err) {
-    // emit_event("encode-finished", "fail");
-    showErrorMsg(err);
   } finally {
     // FIXME: cleanup on player quit?
     // Clean up pass log files.

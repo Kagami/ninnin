@@ -14,7 +14,7 @@ const START_TIME = 1.41708333333333;
 const END_TIME = 3.0420083333333;
 
 function getCmd() {
-  return buildCommand(new Region(), START_TIME, END_TIME)!;
+  return buildCommand(new Region(), START_TIME, END_TIME);
 }
 function getArgs() {
   return getCmd().args;
