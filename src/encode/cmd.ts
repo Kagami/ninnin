@@ -16,8 +16,9 @@ interface ActiveTracks {
   audio: Track[];
   sub: Track[];
 }
+type TrackType = keyof ActiveTracks;
 
-function get_active_tracks() {
+function getActiveTracks(): ActiveTracks {
   const accepted = {
     video: true,
     audio: !mp.get_property_bool("mute"),
@@ -29,28 +30,30 @@ function get_active_tracks() {
     sub: [],
   };
   for (const track of mp.get_property_native("track-list") as Track[]) {
-    const trType = track.type as keyof typeof accepted;
-    if (track.selected && accepted[trType]) {
-      active[trType].push(track);
+    if (track.selected && accepted[track.type]) {
+      active[track.type].push(track);
     }
   }
   return active;
 }
 
-function filter_tracks_supported_by_format(
-  active_tracks: ActiveTracks,
-  format: Format
-) {
-  const has_video_codec = !!format.videoCodec;
-  const has_audio_codec = !!format.audioCodec;
-
-  const supported = {
-    video: has_video_codec ? active_tracks.video : [],
-    audio: has_audio_codec ? active_tracks.audio : [],
-    sub: has_video_codec ? active_tracks.sub : [],
+function getSupportedTracks(format: Format): ActiveTracks {
+  const hasVideoCodec = !!format.videoCodec;
+  const hasAudioCodec = !!format.audioCodec;
+  const activeTracks = getActiveTracks();
+  return {
+    video: hasVideoCodec ? activeTracks.video : [],
+    audio: hasAudioCodec ? activeTracks.audio : [],
+    sub: hasVideoCodec ? activeTracks.sub : [],
   };
+}
 
-  return supported;
+function listTracks(activeTracks: ActiveTracks) {
+  const ret: [TrackType, Track[]][] = [];
+  ret.push(["video", activeTracks["video"]]);
+  ret.push(["audio", activeTracks["audio"]]);
+  ret.push(["sub", activeTracks["sub"]]);
+  return ret;
 }
 
 function append_track(out: string[], track: Track) {
@@ -403,11 +406,7 @@ export function buildCommand(
   );
 
   const format = getCurrentFormat();
-  const active_tracks = get_active_tracks();
-  const supported_active_tracks = filter_tracks_supported_by_format(
-    active_tracks,
-    format
-  );
+  const supported_active_tracks = getSupportedTracks(format);
 
   // Video track is required for Video format but Audio is optional
   const hasVideoCodec = !!format.videoCodec;
@@ -460,7 +459,7 @@ export function buildCommand(
 
   // FIXME: does order of codec/track flags matter?
   // Append selected tracks
-  for (const [track_type, tracks] of ObjectEntries(supported_active_tracks)) {
+  for (const [track_type, tracks] of listTracks(supported_active_tracks)) {
     if (track_type === "audio") {
       append_audio_tracks(args, tracks);
     } else {
@@ -470,7 +469,7 @@ export function buildCommand(
     }
   }
   // Disable non-selected tracks
-  for (const [track_type, tracks] of ObjectEntries(supported_active_tracks)) {
+  for (const [track_type, tracks] of listTracks(supported_active_tracks)) {
     if (tracks.length) continue;
     switch (track_type) {
       case "video":
