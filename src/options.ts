@@ -16,15 +16,12 @@ const DEFAULT_OPTIONS = {
   // %R - "-(height)p", where height is the video's height, or scale_height, if it's enabled.
   // Property expansion is supported, see https://mpv.io/manual/master/#property-expansion
   output_template: "${filename/no-ext}-[%s-%e]",
-
+  // If set, writes video's filename or stream info to the "Title" field.
+  write_metadata_title: true,
   // Sets the output format, from a few predefined ones.
   output_format: "svtav1",
-  // Scale video to a certain height, keeping the aspect ratio. -1 disables it.
-  scale_height: -1,
   // Target filesize, in kB. This will be used to calculate the bitrate
-  // used on the encode. If this is set to <= 0, the video bitrate will be set
-  // to 0, which might enable constant quality modes, depending on the
-  // video codec that's used (VP8 and VP9, for example).
+  // used on the encode. If set to 0, CRF mode is used.
   target_filesize: 0,
 
   // ### Quality-specific settings:
@@ -52,12 +49,19 @@ const DEFAULT_OPTIONS = {
   // 10 is faster than x265_fast and better VMAF. 8 and 9 also fast enough.
   svtav1_preset: 10,
 
-  // 10-bit encoding for 8-bit content (HEVC, AV1)
-  // "Encoding with 10-bit depth results in more accurate colors and fewer artifacts with minimal increase in file size"
-  force_10bit: false,
+  // ### Codec-specific settings
+  // 0-50. 8=movie, 10-15=aggressive, 4-6=animation, 0=off (faster).
+  // Note: "It is recommended to not use Film Grain for presets greater than 6".
+  svtav1_film_grain: 0,
+
+  // Scale video to a certain height, keeping the aspect ratio. -1 disables it.
+  scale_height: -1,
   // Change the FPS of the output video, dropping or duplicating frames as needed.
   // -1 means the FPS will be unchanged from the source.
   fps: -1,
+  // 10-bit encoding for 8-bit content (HEVC, AV1)
+  // "Encoding with 10-bit depth results in more accurate colors and fewer artifacts with minimal increase in file size"
+  force_10bit: false,
   // If set, applies the video filters currently used on the playback to the encode.
   apply_current_filters: true,
   // Force square pixels on output video
@@ -65,8 +69,6 @@ const DEFAULT_OPTIONS = {
   force_square_pixels: false,
   // In kilobits.
   audio_bitrate: 192,
-  // If set, writes video's filename or stream info to the "Title" field.
-  write_metadata_title: true,
   // Custom encoding flags.
   additional_flags: "",
   // gif dither mode, 0-5 for bayer w/ bayer_scale 0-5, 6 for paletteuse default (sierra2_4a)

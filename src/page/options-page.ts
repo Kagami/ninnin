@@ -34,7 +34,6 @@ export default class EncodeOptionsPage extends Page {
     ];
     const filesizeOpts = {
       step: 512,
-      min: 0,
       altDisplayNames: {
         "0": "quality",
       },
@@ -68,25 +67,17 @@ export default class EncodeOptionsPage extends Page {
       ["veryslow"],
       ["placebo"],
     ];
-    const svtPresetOpts = {
-      step: 1,
-      min: 0,
-      max: 12,
-    };
-    const xCrfOpts = {
-      step: 1,
-      min: 0,
-      max: 51,
-    };
-    const vtbCrfOpts = {
-      step: 1,
-      min: 0,
-      max: 100,
-    };
-    const av1CrfOpts = {
-      step: 1,
-      min: 0,
-      max: 63,
+    const svtPresetOpts = { max: 12 };
+
+    const xCrfOpts = { max: 51 };
+    const vtbCrfOpts = { max: 100 };
+    const av1CrfOpts = { max: 63 };
+
+    const svtFilmGrainOpts = {
+      max: 50,
+      altDisplayNames: {
+        "0": "off",
+      },
     };
 
     // const gifDitherOpts: ListOpts<number> = [
@@ -113,6 +104,7 @@ export default class EncodeOptionsPage extends Page {
       ["x_crf", new EncOptionInt("Video quality", options.x_crf, xCrfOpts, () => this.xCrfVisible())],
       ["vtb_crf", new EncOptionInt("Video quality", options.vtb_crf, vtbCrfOpts, () => this.vtbCrfVisible())],
       ["av1_crf", new EncOptionInt("Video quality", options.av1_crf, av1CrfOpts, () => this.av1CrfVisible())],
+      ["svtav1_film_grain", new EncOptionInt("Film grain", options.svtav1_film_grain, svtFilmGrainOpts, () => this.svtav1Selected())],
 
       ["audio_bitrate", new EncOptionInt("Audio bitrate", options.audio_bitrate, audiobOpts)],
       ["fps", new EncOptionList("FPS", options.fps, fpsOpts)],

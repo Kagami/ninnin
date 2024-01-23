@@ -222,15 +222,21 @@ class SVTAV1 extends Format {
   audioCodec = "libopus";
   twoPassSupported = false; // FIXME: check
 
+  private mergeSVTAV1Params() {
+    // https://gitlab.com/AOMediaCodec/SVT-AV1/-/blob/master/Docs/Ffmpeg.md
+    // subjective visual quality (with higher sharpness), instead of objective quality (PSNR)
+    const params = ["tune=0"];
+    // film-grain=8 recommended, but quite slow
+    if (options.svtav1_film_grain) {
+      params.push(`film-grain=${options.svtav1_film_grain}`);
+    }
+    return "--ovcopts-add=svtav1-params=" + params.join(":");
+  }
+
   getVideoFlags() {
     // https://gitlab.com/AOMediaCodec/SVT-AV1/-/blob/master/Docs/Parameters.md#gop-size-and-type-options
     // keyint = -2 = ~5s by default, should be ok
-    return [
-      `--ovc=${this.videoCodec}`,
-      // https://gitlab.com/AOMediaCodec/SVT-AV1/-/blob/master/Docs/Ffmpeg.md
-      // "film-grain" too slow
-      "--ovcopts-add=svtav1-params=tune=0",
-    ];
+    return [`--ovc=${this.videoCodec}`, this.mergeSVTAV1Params()];
   }
   getVideoQualityFlags() {
     // `--ovcopts-add=b=0` seems to be not necessary in recent FFmpeg:

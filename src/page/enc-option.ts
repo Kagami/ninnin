@@ -98,37 +98,34 @@ export class EncOptionBool extends EncOption<boolean, null> {
 export class EncOptionInt extends EncOption<
   number,
   {
-    step: number;
+    step?: number;
     min?: number;
     max?: number;
     altDisplayNames?: { [key: string]: string };
   }
 > {
+  step() {
+    return this.opts.step ?? 1;
+  }
+  min() {
+    return this.opts.min ?? 0;
+  }
+  max() {
+    return this.opts.max ?? Infinity;
+  }
   hasPrevious() {
-    if (this.opts.min !== undefined) {
-      return this.value > this.opts.min;
-    } else {
-      return true;
-    }
+    return this.value > this.min();
   }
   hasNext() {
-    if (this.opts.max !== undefined) {
-      return this.value < this.opts.max;
-    } else {
-      return true;
-    }
+    return this.value < this.max();
   }
   leftKey() {
-    this.value -= this.opts.step;
-    if (this.opts.min !== undefined && this.opts.min > this.value) {
-      this.value = this.opts.min;
-    }
+    this.value -= this.step();
+    this.value = Math.max(this.min(), this.value);
   }
   rightKey() {
-    this.value += this.opts.step;
-    if (this.opts.max !== undefined && this.opts.max < this.value) {
-      this.value = this.opts.max;
-    }
+    this.value += this.step();
+    this.value = Math.min(this.value, this.max());
   }
   getDisplayValue() {
     if (this.opts.altDisplayNames && this.opts.altDisplayNames[this.value]) {

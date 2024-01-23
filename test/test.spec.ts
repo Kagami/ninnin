@@ -233,6 +233,11 @@ test("buildCommand svtav1/opus", () => {
     "--ofopts-add=movflags=+faststart",
     "--o=/home/user/Downloads/video-[00.01.417-00.03.042].mp4",
   ]);
+  options.svtav1_film_grain = 8;
+  deepEqual(
+    getArgs().includes("--ovcopts-add=svtav1-params=tune=0:film-grain=8"),
+    true
+  );
 });
 
 test("10-bit", () => {
