@@ -236,7 +236,11 @@ class SVTAV1 extends Format {
   getVideoFlags() {
     // https://gitlab.com/AOMediaCodec/SVT-AV1/-/blob/master/Docs/Parameters.md#gop-size-and-type-options
     // keyint = -2 = ~5s by default, should be ok
-    return [`--ovc=${this.videoCodec}`, this.mergeSVTAV1Params()];
+    return [
+      `--ovc=${this.videoCodec}`,
+      `--ovcopts-add=preset=${options.svtav1_preset}`,
+      this.mergeSVTAV1Params(),
+    ];
   }
   getVideoQualityFlags() {
     // `--ovcopts-add=b=0` seems to be not necessary in recent FFmpeg:
