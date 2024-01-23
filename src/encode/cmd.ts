@@ -8,7 +8,6 @@ import options from "../options";
 import { byteLength, message, stripProtocol } from "../utils";
 import { ObjectEntries, StringStartsWith } from "../lib/helpers";
 import { formatFilename, showTime } from "../pretty";
-import { getNullPath } from "../lib/os";
 
 type Track = MP.Prop.Track;
 interface ActiveTracks {
@@ -501,10 +500,11 @@ export function buildCommand(
   const outPath = getOutPath(origStartTime, origEndTime);
 
   // finalize pass 1 flags
+  // FIXME: don't encode audio for pass=1
   const argsPass1 = args.slice();
   argsPass1.push(...format.getPass1Flags(outPath));
   argsPass1.push("--of=null");
-  argsPass1.push(`--o=${getNullPath()}`);
+  argsPass1.push("--o=-");
 
   // finalize pass 0/2 flags
   if (shouldTwoPass(format)) {

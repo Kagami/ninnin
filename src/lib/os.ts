@@ -32,7 +32,3 @@ export function mkdirp(dir: string) {
     playback_only: false,
   } as MP.Cmd.SubprocessArgs);
 }
-
-export function getNullPath() {
-  return getPlatform() === "windows" ? "NUL" : "/dev/null";
-}

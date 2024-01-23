@@ -129,7 +129,7 @@ test("buildCommand x264/aac", () => {
   ]);
 
   options.target_filesize = 1024;
-  deepEqual(getCmd().argsPass1.slice(-2), ["--of=null", "--o=/dev/null"]);
+  deepEqual(getCmd().argsPass1.slice(-2), ["--of=null", "--o=-"]);
   enableVideoToolbox();
   deepEqual(getArgs().includes("--oac=aac_at"), true);
 });
