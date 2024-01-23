@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
-  "description": "mpv-based video encoder",
+  "description": "mpv-based video encoding tool",
   "scripts": {
     "build": "rm -rf build ninnin.js && tsc && esbuild build/index.js --bundle --outfile=ninnin.js --target=es5",
     "start": "esbuild build/index.js --bundle --outfile=ninnin.js --target=es5 --watch=forever & trap 'kill $!' SIGINT && tsc --watch",

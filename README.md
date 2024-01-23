@@ -1,6 +1,6 @@
 # ninnin
 
-[mpv](https://mpv.io/)-based video encoder tool. Allows you to quickly cut clips
+[mpv](https://mpv.io/)-based video encoding tool. Allows you to quickly cut clips
 from video you're currently watching, including YouTube ones, without having to
 download it fully or open in another program. Currently supported codecs:
 
