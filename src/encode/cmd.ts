@@ -155,9 +155,9 @@ function get_contrast_brightness_and_saturation_filters() {
   ];
 }
 
-function append_property(out: string[], property_name: string) {
+function append_property(out: string[], property_name: string, def = "") {
   const prop = mp.get_property(property_name);
-  if (prop) {
+  if (prop !== def) {
     out.push(`--${property_name}=${prop}`);
   }
 }
@@ -182,14 +182,14 @@ function append_property(out: string[], property_name: string) {
  */
 function get_playback_options() {
   const ret: string[] = [];
-  append_property(ret, "sub-ass-override");
+  append_property(ret, "sub-ass-override", "yes");
   append_property(ret, "sub-ass-style-overrides");
-  append_property(ret, "sub-ass-vsfilter-aspect-compat");
-  append_property(ret, "sub-auto");
-  append_property(ret, "sub-pos");
-  append_property(ret, "sub-delay");
-  append_property(ret, "video-rotate");
-  append_property(ret, "deinterlace");
+  append_property(ret, "sub-ass-vsfilter-aspect-compat", "yes");
+  append_property(ret, "sub-auto", "exact");
+  append_property(ret, "sub-pos", "100.000000");
+  append_property(ret, "sub-delay", "0.000000");
+  append_property(ret, "video-rotate", "0");
+  append_property(ret, "deinterlace", "no");
   append_property(ret, "ytdl-format");
   return ret;
 }
@@ -421,10 +421,6 @@ export function buildCommand(
     // FIXME: not needed if encoding full file?
     "--start=" + showTime(startTime, { hr: true }),
     "--end=" + showTime(endTime, { hr: true }),
-    // When loop-file=inf, the encode won't end. Set this to override.
-    "--loop-file=no",
-    // Same thing with --pause
-    "--no-pause",
   ];
 
   const duration = endTime - startTime;
