@@ -9,9 +9,9 @@ export class Format {
   audioCodec = "";
   outputExtension = "mp4";
   twoPassSupported = true;
-  twoPassPreferable = false; // FIXME: use 2-pass for AV1+CRF?
   highBitDepthSupported = true;
   hwAccelerated = false;
+  metadataSupported = true;
 
   getDisplayName() {
     return this.displayName;
@@ -19,8 +19,8 @@ export class Format {
 
   // Filters that should be applied before the transformations we do (crop, scale)
   // Should be a array of ffmpeg filters e.g. {"colormatrix=bt709", "sub"}.
-  getPreFilters() {
-    return [] as string[];
+  getPreFilters(): string[] {
+    return [];
   }
 
   // Similar to getPreFilters, but after our transformations.
@@ -44,8 +44,8 @@ export class Format {
   getVideoFlags() {
     return [`--ovc=${this.videoCodec}`];
   }
-  getVideoQualityFlags() {
-    return [`--ovcopts-add=crf=${options.x_crf}`];
+  getVideoQualityFlags(): string[] {
+    return [];
   }
 
   // Audio codec flags
@@ -69,11 +69,11 @@ export class Format {
     const logName = `.ninnin-${fname}.passlog`;
     return mp.utils.join_path(dir, logName);
   }
-  protected getPassCommonFlags(_outPath: string) {
-    return [] as string[];
+  protected getPassCommonFlags(_outPath: string): string[] {
+    return [];
   }
-  getPass0Flags(_outPath: string) {
-    return [] as string[]; // flags for normal single pass mode
+  getPass0Flags(_outPath: string): string[] {
+    return []; // flags for normal single pass mode
   }
   getPass1Flags(outPath: string) {
     return ["--ovcopts-add=flags=+pass1", ...this.getPassCommonFlags(outPath)];
@@ -101,6 +101,9 @@ class X264 extends Format {
       `--ovc=${this.videoCodec}`,
       `--ovcopts-add=preset=${options.x264_preset}`,
     ];
+  }
+  getVideoQualityFlags() {
+    return [`--ovcopts-add=crf=${options.x_crf}`];
   }
 
   // FIXME: we use mp4 container, maybe copy AAC audio instead of re-encoding?
@@ -143,6 +146,9 @@ class X265 extends Format {
       `--ovcopts-add=preset=${options.x265_preset}`,
       `--ovcopts-add=codec_tag=0x31637668`, // hvc1 tag, for compatibility with Apple devices
     ];
+  }
+  getVideoQualityFlags() {
+    return [`--ovcopts-add=crf=${options.x_crf}`];
   }
 
   getAudioFlags() {
@@ -204,7 +210,6 @@ class HEVC_VTB extends Format {
     ];
   }
   getVideoQualityFlags() {
-    if (options.vtb_crf < 0) return [];
     return [
       `--ovcopts-add=global_quality=${options.vtb_crf * this.FF_QP2LAMBDA}`,
       "--ovcopts-add=flags=+qscale",

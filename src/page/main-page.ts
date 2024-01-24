@@ -10,10 +10,12 @@ import { message } from "../utils";
 import { showTime } from "../pretty";
 import Ass from "../lib/ass";
 import ResultPage from "./result-page";
+import { getCurrentFormat } from "../encode/formats";
 
 export default class MainPage extends Page {
   private startTime = -1;
   private endTime = -1;
+  private outPath = "";
   private region: Region;
 
   constructor() {
@@ -34,6 +36,7 @@ export default class MainPage extends Page {
 
   setStartTime() {
     this.startTime = mp.get_property_number("time-pos", 0);
+    this.updateOutPath();
     if (this.visible) {
       this.clear();
       this.draw();
@@ -42,6 +45,7 @@ export default class MainPage extends Page {
 
   setEndTime() {
     this.endTime = mp.get_property_number("time-pos", 0);
+    this.updateOutPath();
     if (this.visible) {
       this.clear();
       this.draw();
@@ -57,12 +61,14 @@ export default class MainPage extends Page {
   }
 
   updateStartEnd() {
-    if (mp.get_property_native("duration")) {
+    const duration = mp.get_property_number("duration", 0);
+    if (duration) {
       // Note: there exists an option called rebase-start-time, which, when set to no,
       // could cause the beginning of the video to not be at 0. Not sure how this
       // would affect this code.
       this.startTime = 0;
-      this.endTime = mp.get_property_number("duration", 0);
+      this.endTime = duration;
+      this.updateOutPath();
     } else {
       this.startTime = -1;
       this.endTime = -1;
@@ -74,17 +80,20 @@ export default class MainPage extends Page {
     }
   }
 
+  private updateOutPath() {
+    this.outPath = getOutPath(getCurrentFormat(), this.startTime, this.endTime);
+  }
+
   draw() {
     const { width: window_w, height: window_h } = mp.get_osd_size()!;
     const ass = new Ass();
     ass.new_event();
     this.setup_text(ass);
-    const outPath = getOutPath(this.startTime, this.endTime);
     const title = getMetadataTitle();
     // prettier-ignore
     {
       ass.append_2nl(`${ass.bold('ninnin encoder')}`);
-      ass.append_nl(`output: ${outPath}`);
+      ass.append_nl(`output: ${this.outPath}`);
       if (options.write_metadata_title && title) {
         ass.append_nl(`title: ${title}`);
       }
@@ -175,10 +184,9 @@ export default class MainPage extends Page {
 
   onEncodeEnded(err?: unknown) {
     this.hide();
-    const outPath = getOutPath(this.startTime, this.endTime);
     const resultPage = new ResultPage(
       err,
-      outPath,
+      this.outPath,
       this.gotoOptions.bind(this)
     );
     resultPage.show();

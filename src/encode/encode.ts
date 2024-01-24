@@ -1,8 +1,8 @@
 import Ass from "../lib/ass";
 import Page from "../page/page";
-import { type Format, getCurrentFormat } from "./formats";
+import { getCurrentFormat } from "./formats";
 import { type Region } from "../video-to-screen";
-import { buildCommand, shouldTwoPass } from "./cmd";
+import { type Cmd, buildCommand } from "./cmd";
 import { remove_file } from "../lib/os";
 import { MPVEncode } from "./mpv";
 import { showTime } from "../pretty";
@@ -79,20 +79,20 @@ export default class EncodeWithProgress extends Page {
   }
 }
 
-async function encodeInner(
-  startTime: number,
-  endTime: number,
-  format: Format,
-  args: string[],
-  argsPass1: string[],
-  outPath: string
-) {
+async function encodeInner({
+  startTime,
+  endTime,
+  // pipeArgs,
+  args,
+  pass1Args,
+  outPath,
+}: Cmd) {
   const ewp = new EncodeWithProgress(startTime, endTime);
   let pass = 0; // single pass
 
-  if (shouldTwoPass(format)) {
+  if (pass1Args) {
     pass = 1; // first pass
-    await ewp.startEncode(pass, argsPass1, outPath);
+    await ewp.startEncode(pass, pass1Args, outPath);
     pass = 2; // second pass
   }
 
@@ -104,23 +104,22 @@ export async function doEncode(
   origStartTime: number,
   origEndTime: number
 ) {
-  const { args, argsPass1, isLive, livePath, outPath, startTime, endTime } =
-    buildCommand(region, origStartTime, origEndTime);
   const format = getCurrentFormat();
+  const cmd = buildCommand(format, region, origStartTime, origEndTime);
 
   try {
-    await encodeInner(startTime, endTime, format, args, argsPass1, outPath);
+    await encodeInner(cmd);
   } finally {
     // FIXME: cleanup on player quit?
     // Clean up pass log files.
-    if (shouldTwoPass(format)) {
-      for (const fpath of format.getPassFilePaths(outPath)) {
+    if (cmd.pass1Args) {
+      for (const fpath of format.getPassFilePaths(cmd.outPath)) {
         remove_file(fpath, { silentErrors: true });
       }
     }
     // Clean up dumped stream cache.
-    if (isLive) {
-      remove_file(livePath);
+    if (cmd.isLive) {
+      remove_file(cmd.livePath);
     }
   }
 }

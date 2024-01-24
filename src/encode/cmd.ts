@@ -2,7 +2,7 @@
 
 import type { MP } from "mpv.d.ts";
 
-import { type Format, getCurrentFormat } from "./formats";
+import type { Format } from "./formats";
 import type { Region } from "../video-to-screen";
 import options from "../options";
 import { byteLength, stripProtocol } from "../utils";
@@ -244,8 +244,7 @@ export function getMetadataTitle() {
 
 function get_metadata_flags() {
   const title = getMetadataTitle();
-  // XXX: seems like no other way to escape arbitrary input in mpv.
-  // FIXME: does this work on Windows?
+  // FIXME: byteLength correct on Windows? (UTF-8 vs UTF-16)
   return title ? [`--oset-metadata=title=%${byteLength(title)}%${title}`] : [];
 }
 
@@ -358,8 +357,9 @@ function fixLivePathTime(path: string, startTime: number, endTime: number) {
   return { isLive, livePath, startTime, endTime };
 }
 
-// FIXME: don't call get_property for pure functions?
-export function getOutPath(startTime: number, endTime: number) {
+export function getOutPath(format: Format, startTime: number, endTime: number) {
+  if (format.outputExtension === "-") return "-"; // pipe
+
   let dir = "";
   if (options.output_directory) {
     dir = mp.utils.get_user_path(options.output_directory);
@@ -374,24 +374,31 @@ export function getOutPath(startTime: number, endTime: number) {
     }
   }
 
-  const formatted_filename = formatFilename(
-    startTime,
-    endTime,
-    getCurrentFormat()
-  );
+  const formatted_filename = formatFilename(format, startTime, endTime);
   return mp.utils.join_path(dir, formatted_filename);
 }
 
-export function shouldTwoPass(format: Format) {
-  if (options.target_filesize) return format.twoPassSupported;
-  return format.twoPassPreferable;
+function shouldTwoPass(format: Format) {
+  return options.target_filesize && format.twoPassSupported;
+}
+
+export interface Cmd {
+  pass1Args?: string[] /** command for first pass */;
+  pipeArgs?: string[] /** command before pipe */;
+  args: string[] /** command after pipe (or just command) */;
+  isLive: boolean;
+  livePath: string;
+  outPath: string;
+  startTime: number;
+  endTime: number;
 }
 
 export function buildCommand(
+  format: Format,
   region: Region,
   origStartTime: number,
   origEndTime: number
-) {
+): Cmd {
   const path = mp.get_property("path");
   if (!path) throw new Error("No file is being played");
 
@@ -401,9 +408,7 @@ export function buildCommand(
     origEndTime
   );
 
-  const format = getCurrentFormat();
   const supported_active_tracks = getSupportedTracks(format);
-
   // Video track is required for Video format but Audio is optional
   const hasVideoCodec = !!format.videoCodec;
   const hasVideoTrack = !!supported_active_tracks.video.length;
@@ -477,7 +482,7 @@ export function buildCommand(
     args.push(...get_video_encode_flags(format, region));
   }
 
-  if (options.write_metadata_title) {
+  if (options.write_metadata_title && format.metadataSupported) {
     args.push(...get_metadata_flags());
   }
 
@@ -486,14 +491,17 @@ export function buildCommand(
     args.push(...options.additional_flags.trim().split(/\s+/));
   }
 
-  const outPath = getOutPath(origStartTime, origEndTime);
+  const outPath = getOutPath(format, origStartTime, origEndTime);
 
   // finalize pass 1 flags
   // FIXME: don't encode audio for pass=1
-  const argsPass1 = args.slice();
-  argsPass1.push(...format.getPass1Flags(outPath));
-  argsPass1.push("--of=null");
-  argsPass1.push("--o=-");
+  let pass1Args: string[] | undefined;
+  if (shouldTwoPass(format)) {
+    pass1Args = args.slice();
+    pass1Args.push(...format.getPass1Flags(outPath));
+    pass1Args.push("--of=null");
+    pass1Args.push("--o=-");
+  }
 
   // finalize pass 0/2 flags
   if (shouldTwoPass(format)) {
@@ -505,8 +513,8 @@ export function buildCommand(
   args.push(`--o=${outPath}`);
 
   return {
+    pass1Args,
     args,
-    argsPass1,
     isLive,
     livePath,
     outPath,

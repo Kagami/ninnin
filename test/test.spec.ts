@@ -3,8 +3,9 @@ import { deepEqual } from "node:assert/strict";
 
 import options, { serializeOptions } from "../src/options";
 import { byteLength } from "../src/utils";
-import { formatByName } from "../src/encode/formats";
+import { formatByName, getCurrentFormat } from "../src/encode/formats";
 import { buildCommand, getMetadataTitle } from "../src/encode/cmd";
+import { buildVmafCommand } from "../src/encode/vmaf";
 import { Region } from "../src/video-to-screen";
 import { formatFilename } from "../src/pretty";
 
@@ -14,7 +15,7 @@ const START_TIME = 1.41708333333333;
 const END_TIME = 3.0420083333333;
 
 function getCmd() {
-  return buildCommand(new Region(), START_TIME, END_TIME);
+  return buildCommand(getCurrentFormat(), new Region(), START_TIME, END_TIME);
 }
 function getArgs() {
   return getCmd().args;
@@ -33,7 +34,7 @@ test("byteLength", () => {
 });
 
 test("formatFilename", () => {
-  const filename = formatFilename(START_TIME, END_TIME, formatByName.x264);
+  const filename = formatFilename(formatByName.x264, START_TIME, END_TIME);
   deepEqual(filename, "video-[00.01.417-00.03.042].mp4");
 });
 
@@ -120,7 +121,7 @@ test("buildCommand x264/aac", () => {
   ]);
 
   options.target_filesize = 1024;
-  deepEqual(getCmd().argsPass1.slice(-2), ["--of=null", "--o=-"]);
+  deepEqual(getCmd().pass1Args!.slice(-2), ["--of=null", "--o=-"]);
   enableVideoToolbox();
   deepEqual(getArgs().includes("--oac=aac_at"), true);
 });
@@ -203,6 +204,33 @@ test("buildCommand svtav1/opus", () => {
     getArgs().includes("--ovcopts-add=svtav1-params=tune=0:film-grain=8"),
     true
   );
+});
+
+test("buildCommand VMAF", () => {
+  const cmd = buildVmafCommand(new Region(), START_TIME, END_TIME);
+  deepEqual(cmd.pipeArgs, [
+    "mpv",
+    "/home/user/video.mp4",
+    "--no-terminal",
+    "--start=0:00:01.417",
+    "--end=0:00:03.042",
+    "--ovc=rawvideo",
+    "--vid=1",
+    "--aid=no",
+    "--sid=no",
+    "--of=nut",
+    "--o=-",
+  ]);
+  deepEqual(cmd.args, [
+    "mpv",
+    "/home/user/Downloads/video-[00.01.417-00.03.042].mp4",
+    "--external-file=-",
+    "--msg-level=all=no,ffmpeg=v",
+    "--lavfi-complex=[vid1][vid2]libvmaf=pool=harmonic_mean:n_threads=10[vo]",
+    "--of=null",
+    "--o=-",
+  ]);
+  deepEqual(cmd.pass1Args, undefined);
 });
 
 test("10-bit", () => {

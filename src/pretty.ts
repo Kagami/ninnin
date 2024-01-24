@@ -30,9 +30,9 @@ function showTimePath(seconds: number, { ms = true } = {}) {
 }
 
 export function formatFilename(
+  format: Format,
   startTime: number,
-  endTime: number,
-  format: Format
+  endTime: number
 ) {
   // XXX: use proper parser if need to support more props, see
   // https://github.com/mpv-player/mpv/blob/5f7ce41/player/screenshot.c#L141
