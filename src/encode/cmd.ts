@@ -391,6 +391,7 @@ export interface Cmd {
   outPath: string;
   startTime: number;
   endTime: number;
+  vmafLogPath?: string;
 }
 
 export function buildCommand(

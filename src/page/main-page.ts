@@ -4,11 +4,10 @@ import CropPage from "./crop-page";
 import PreviewPage from "./preview-page";
 import EncodeOptionsPage from "./options-page";
 import { getMetadataTitle, getOutPath } from "../encode/cmd";
-import { doEncode } from "../encode/encode";
+import { calcVMAF, encode } from "../encode/encode";
 import { Region } from "../video-to-screen";
 import { message } from "../utils";
 import { showTime } from "../pretty";
-import Ass from "../lib/ass";
 import ResultPage from "./result-page";
 import { getCurrentFormat } from "../encode/formats";
 
@@ -85,10 +84,8 @@ export default class MainPage extends Page {
   }
 
   draw() {
-    const { width: window_w, height: window_h } = mp.get_osd_size()!;
-    const ass = new Ass();
-    ass.new_event();
-    this.setup_text(ass);
+    const w = mp.get_osd_size()!;
+    const ass = this.setup_ass();
     const title = getMetadataTitle();
     // prettier-ignore
     {
@@ -108,7 +105,7 @@ export default class MainPage extends Page {
       ass.append_2nl(`${ass.bold('e:')} encode`);
       ass.append_nl(`${ass.bold('ESC:')} close`);
     }
-    mp.set_osd_ass(window_w, window_h, ass.text);
+    mp.set_osd_ass(w.width, w.height, ass.text);
   }
 
   show() {
@@ -171,7 +168,7 @@ export default class MainPage extends Page {
 
     try {
       // emit_event("encode-started");
-      await doEncode(this.region, this.startTime, this.endTime);
+      await encode(this.region, this.startTime, this.endTime);
       // emit_event("encode-finished", "success");
     } catch (err) {
       // emit_event("encode-finished", "fail");
@@ -187,7 +184,8 @@ export default class MainPage extends Page {
     const resultPage = new ResultPage(
       err,
       this.outPath,
-      this.gotoOptions.bind(this)
+      this.gotoOptions.bind(this),
+      () => calcVMAF(this.region, this.startTime, this.endTime)
     );
     resultPage.show();
   }

@@ -63,3 +63,33 @@ export function nproc(): number {
   numCores = +cores || 8; // assume 8 cores if can't detect
   return numCores;
 }
+
+// FIXME: check on windows
+export function escapeArgs(args: string[]): string {
+  const isWin = getPlatform() === "windows";
+  const escaped = args.map((arg) => {
+    if (arg === "|") return arg; // allow pipe
+    if (!/[^.A-Za-z0-9_/:=-]/.test(arg)) return arg; // don't quote if safe
+    // Single quotes for UNIX, double quotes for Windows.
+    return isWin
+      ? '"' + arg.replace(/"/g, '"\\""') + '"'
+      : "'" + arg.replace(/'/g, "'\\''") + "'";
+  });
+  let concat = escaped.join(" ");
+  if (isWin) {
+    // Add a second set of double-quotes because idk it works
+    concat = '"' + concat + '"';
+  }
+  return concat;
+}
+
+export function getShellArgs(args: string[]): string[] {
+  return getPlatform() === "windows"
+    ? ["cmd", "/c", escapeArgs(args)]
+    : ["sh", "-c", escapeArgs(args)];
+}
+
+// For testing
+export function testingResetPlatform() {
+  platform = undefined;
+}

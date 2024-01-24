@@ -1,9 +1,13 @@
 import * as Path from "node:path";
 
 import options from "../src/options";
-import { resetCaps } from "../src/caps";
+import { testingResetCaps } from "../src/caps";
+import { testingResetPlatform } from "../src/lib/os";
 
 const DEFAULT_OPTIONS = { ...options };
+
+let currentPlatform = "linux";
+let videoToolboxEnabled = false;
 
 const localFile = {
   local: true,
@@ -11,7 +15,6 @@ const localFile = {
   "filename/no-ext": "video",
   path: "/home/user/video.mp4",
 };
-
 const remoteFile = {
   local: false,
   filename: "watch?v=ABCDEF-1234",
@@ -19,9 +22,11 @@ const remoteFile = {
   path: "https://www.youtube.com/watch?v=ABCDEF-1234",
 };
 let currentFile = localFile;
-let videoToolboxEnabled = false;
 
 const mp = {
+  get_script_file() {
+    return "/home/user/.config/mpv/scripts/ninnin.js";
+  },
   utils: {
     getenv(env) {
       if (env === "HOME") {
@@ -80,7 +85,7 @@ const mp = {
       case "deinterlace":
         return "no";
       case "platform":
-        return "linux";
+        return currentPlatform;
     }
     throw new Error("get_property: " + prop);
   },
@@ -162,18 +167,25 @@ export function setMock() {
   global.mp = mp as any;
 }
 
-export function enableVideoToolbox() {
-  resetCaps();
-  videoToolboxEnabled = true;
+export function setPlatform(platform: string) {
+  testingResetPlatform();
+  currentPlatform = platform;
 }
 
 export function setFile({ local } = { local: true }) {
   currentFile = local ? localFile : remoteFile;
 }
 
+export function enableVideoToolbox() {
+  testingResetCaps();
+  videoToolboxEnabled = true;
+}
+
 export function resetOpts() {
   Object.assign(options, DEFAULT_OPTIONS);
-  resetCaps();
+  testingResetPlatform();
+  testingResetCaps();
+  currentPlatform = "linux";
   currentFile = localFile;
   videoToolboxEnabled = false;
 }

@@ -1,7 +1,7 @@
 import type { MP } from "mpv.d.ts";
 
 import type { Stats } from "./script";
-import { remove_file } from "../lib/os";
+import { escapeArgs, getShellArgs, remove_file } from "../lib/os";
 
 const CANCEL_MSG = "ninnin-cancel";
 
@@ -10,29 +10,40 @@ export function isCancelled(err: unknown) {
 }
 
 export class MPVEncode {
+  args: string[];
+  private viaShell = false;
   private logPath: string;
   private asyncID: unknown;
-  private waitPromise: Promise<void>;
 
-  constructor(args: string[], outPath: string) {
+  constructor(pipeArgs: string[] | undefined, args: string[], outPath: string) {
     args = args.slice();
 
     // run ourselves in encoding mode
     const scriptPath = mp.get_script_file();
     args.push("--script=" + scriptPath);
-
+    // log for communication with main script
+    // TODO: some better way of IPC?
     const [dir, fname] = mp.utils.split_path(outPath);
     const logName = `.ninnin-${fname}.log`;
     this.logPath = mp.utils.join_path(dir, logName);
     args.push("--script-opts=ninnin-encoding=" + this.logPath);
 
-    mp.msg.info("Command line:", args.join(" "));
+    // piping needed, so run via the system shell
+    if (pipeArgs) {
+      args = getShellArgs(pipeArgs.concat("|", args));
+      this.viaShell = true;
+    }
 
-    this.waitPromise = new Promise((resolve, reject) => {
+    this.args = args;
+  }
+
+  wait(): Promise<void> {
+    this.logCmd();
+    return new Promise((resolve, reject) => {
       this.asyncID = mp.command_native_async(
         {
           name: "subprocess",
-          args,
+          args: this.args,
           playback_only: false,
           env: this.getEnv(),
         } as MP.Cmd.SubprocessArgs,
@@ -54,6 +65,16 @@ export class MPVEncode {
     });
   }
 
+  private logCmd() {
+    if (this.viaShell) {
+      // Don't escape shell args second time for readability.
+      // You can use just the part after "sh -c" and it will work.
+      mp.msg.info("Command line (shell): " + this.args.join(" "));
+    } else {
+      mp.msg.info("Command line: " + escapeArgs(this.args));
+    }
+  }
+
   private getEnv() {
     // https://gitlab.com/AOMediaCodec/SVT-AV1/-/blob/ef1f071/Source/Lib/Common/Codec/EbLog.h#L18
     return mp.utils.get_env_list().concat("SVT_LOG=2");
@@ -70,10 +91,6 @@ export class MPVEncode {
     } catch (e) {
       return;
     }
-  }
-
-  wait() {
-    return this.waitPromise;
   }
 
   cancel() {

@@ -1,7 +1,7 @@
+import Ass from "../lib/ass";
 import options from "../options";
 import { ObjectEntries } from "../lib/helpers";
 import { calculate_scale_factor } from "../utils";
-import type Ass from "../lib/ass";
 
 export default class Page {
   protected keybinds?: { [key: string]: () => void };
@@ -93,5 +93,12 @@ export default class Page {
     ass.append("{\\an7}");
     ass.pos(margin, margin);
     ass.append(`{\\fs${options.font_size * scale}}`);
+  }
+
+  setup_ass(): Ass {
+    const ass = new Ass();
+    ass.new_event();
+    this.setup_text(ass);
+    return ass;
   }
 }

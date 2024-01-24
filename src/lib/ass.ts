@@ -2,6 +2,7 @@ import AssDraw from "mpv-assdraw";
 
 /** Some additional helpers for the AssDraw base class. */
 export default class Ass extends AssDraw {
+  /** @deprecated use Ass#B instead */
   bold(s: string) {
     return `{\\b1}${s}{\\b0}`;
   }

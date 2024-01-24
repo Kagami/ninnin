@@ -6,10 +6,18 @@ import { byteLength } from "../src/utils";
 import { formatByName, getCurrentFormat } from "../src/encode/formats";
 import { buildCommand, getMetadataTitle } from "../src/encode/cmd";
 import { buildVmafCommand } from "../src/encode/vmaf";
+import { MPVEncode } from "../src/encode/mpv";
 import { Region } from "../src/video-to-screen";
 import { formatFilename } from "../src/pretty";
 
-import { setMock, enableVideoToolbox, resetOpts, setFile } from "./mock";
+import {
+  setMock,
+  enableVideoToolbox,
+  resetOpts,
+  setFile,
+  setPlatform,
+} from "./mock";
+import { getShellArgs } from "../src/lib/os";
 
 const START_TIME = 1.41708333333333;
 const END_TIME = 3.0420083333333;
@@ -19,6 +27,14 @@ function getCmd() {
 }
 function getArgs() {
   return getCmd().args;
+}
+function getVmafCmd() {
+  return buildVmafCommand(
+    getCurrentFormat(),
+    new Region(),
+    START_TIME,
+    END_TIME
+  );
 }
 
 before(() => {
@@ -31,6 +47,21 @@ beforeEach(() => {
 
 test("byteLength", () => {
   deepEqual(byteLength("세모콘"), 9);
+});
+
+test("getShellArgs", () => {
+  const args = ["echo", "`evil`", "'arg1'", '"arg2"'];
+  deepEqual(getShellArgs(args), [
+    "sh",
+    "-c",
+    "echo '`evil`' ''\\''arg1'\\''' '\"arg2\"'",
+  ]);
+  setPlatform("windows");
+  deepEqual(getShellArgs(args), [
+    "cmd",
+    "/c",
+    '"echo "`evil`" "\'arg1\'" ""\\""arg2"\\""""',
+  ]);
 });
 
 test("formatFilename", () => {
@@ -207,7 +238,7 @@ test("buildCommand svtav1/opus", () => {
 });
 
 test("buildCommand VMAF", () => {
-  const cmd = buildVmafCommand(new Region(), START_TIME, END_TIME);
+  const cmd = getVmafCmd();
   deepEqual(cmd.pipeArgs, [
     "mpv",
     "/home/user/video.mp4",
@@ -223,14 +254,34 @@ test("buildCommand VMAF", () => {
   ]);
   deepEqual(cmd.args, [
     "mpv",
+    "--no-terminal",
     "/home/user/Downloads/video-[00.01.417-00.03.042].mp4",
     "--external-file=-",
-    "--msg-level=all=no,ffmpeg=v",
-    "--lavfi-complex=[vid1][vid2]libvmaf=pool=harmonic_mean:n_threads=3[vo]",
+    "--lavfi-complex=[vid1][vid2]libvmaf=n_threads=3:log_path='/home/user/Downloads/.ninnin-video-[00.01.417-00.03.042].mp4.json':log_fmt=json[vo]",
     "--of=null",
     "--o=-",
   ]);
   deepEqual(cmd.pass1Args, undefined);
+});
+
+test("MPVEncode", () => {
+  const cmd = getCmd();
+  const mpv = new MPVEncode(undefined, cmd.args, cmd.outPath);
+  deepEqual(mpv.args.slice(-3), [
+    "--o=/home/user/Downloads/video-[00.01.417-00.03.042].mp4",
+    "--script=/home/user/.config/mpv/scripts/ninnin.js",
+    "--script-opts=ninnin-encoding=/home/user/Downloads/.ninnin-video-[00.01.417-00.03.042].mp4.log",
+  ]);
+  const cmd2 = getVmafCmd();
+  const mpv2 = new MPVEncode(cmd2.pipeArgs, cmd2.args, cmd2.outPath);
+  deepEqual(mpv2.args, [
+    "sh",
+    "-c",
+    "mpv /home/user/video.mp4 --no-terminal --start=0:00:01.417 --end=0:00:03.042 --ovc=rawvideo --vid=1 --aid=no --sid=no --of=nut --o=- " +
+      "| mpv --no-terminal '/home/user/Downloads/video-[00.01.417-00.03.042].mp4' --external-file=-" +
+      " '--lavfi-complex=[vid1][vid2]libvmaf=n_threads=3:log_path='\\''/home/user/Downloads/.ninnin-video-[00.01.417-00.03.042].mp4.json'\\'':log_fmt=json[vo]' --of=null --o=-" +
+      " --script=/home/user/.config/mpv/scripts/ninnin.js '--script-opts=ninnin-encoding=/home/user/Downloads/.ninnin-video-[00.01.417-00.03.042].mp4.log'",
+  ]);
 });
 
 test("10-bit", () => {

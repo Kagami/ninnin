@@ -1,9 +1,10 @@
-import Ass from "../lib/ass";
+import type Ass from "../lib/ass";
+import { remove_file } from "../lib/os";
 import Page from "../page/page";
-import { getCurrentFormat } from "./formats";
+import { type Format, getCurrentFormat } from "./formats";
 import { type Region } from "../video-to-screen";
 import { type Cmd, buildCommand } from "./cmd";
-import { remove_file } from "../lib/os";
+import { buildVmafCommand } from "./vmaf";
 import { MPVEncode } from "./mpv";
 import { showTime } from "../pretty";
 
@@ -13,50 +14,71 @@ export default class EncodeWithProgress extends Page {
   private pass = 0;
   private mpv?: MPVEncode;
   private lastStatus = "";
+  private duration: number;
 
-  constructor(private startTime: number, private endTime: number) {
+  constructor(
+    private vmaf: boolean /** whether we are in VMAF mode */,
+    private startTime: number,
+    endTime: number
+  ) {
     super();
+    this.duration = endTime - startTime;
     this.keybinds = {
       ESC: this.cancel.bind(this),
     };
   }
 
-  private getStatus() {
+  private getStatus(): string {
     if (!this.mpv) return this.lastStatus;
     const stats = this.mpv.getStats();
     if (!stats) return this.lastStatus;
 
     let { timePos } = stats;
-    timePos -= this.startTime;
-    const duration = this.endTime - this.startTime;
+    if (!this.vmaf) {
+      // in VMAF encoding file is already cut from the startTime
+      timePos -= this.startTime;
+    }
 
-    let progress = Math.floor((timePos / duration) * 100);
+    let progress = Math.floor((timePos / this.duration) * 100);
     progress = Math.min(100, Math.max(0, progress));
 
     const pos = showTime(timePos, { ms: false });
-    const dur = showTime(duration, { ms: false });
+    const dur = showTime(this.duration, { ms: false });
     this.lastStatus = `${pos}/${dur} (${progress}%)`;
     return this.lastStatus;
   }
 
   draw() {
-    const { width: window_w, height: window_h } = mp.get_osd_size()!;
-    const ass = new Ass();
-    ass.new_event();
-    this.setup_text(ass);
-    const passInfo = this.pass ? ` pass ${this.pass}` : "";
+    const s = mp.get_osd_size()!;
+    const ass = this.setup_ass();
     const status = this.getStatus() || "N/A";
+    if (this.vmaf) {
+      this.drawVmaf(ass, status);
+    } else {
+      this.drawEnc(ass, status);
+    }
+    ass.append_nl();
+    ass.append_nl(`${ass.B("ESC:")} cancel`);
+    mp.set_osd_ass(s.width, s.height, ass.text);
+  }
+  private drawEnc(ass: Ass, status: string) {
+    const passInfo = this.pass ? ` pass ${this.pass}` : "";
     ass.append_nl(`Output: ${this.outPath}`);
     ass.append_nl(`Encoding${passInfo}: ${status}`);
-    ass.append_nl();
-    ass.append_nl(`${ass.bold("ESC:")} cancel encoding`);
-    mp.set_osd_ass(window_w, window_h, ass.text);
+  }
+  private drawVmaf(ass: Ass, status: string) {
+    ass.append_nl(`VMAF progress: ${status}`);
   }
 
-  async startEncode(pass: number, args: string[], outPath: string) {
+  async startEncode(
+    pass: number,
+    pipeArgs: string[] | undefined,
+    args: string[],
+    outPath: string
+  ) {
     this.pass = pass;
     this.outPath = outPath;
-    this.mpv = new MPVEncode(args, outPath);
+    this.mpv = new MPVEncode(pipeArgs, args, outPath);
     this.show();
     const drawTimer = setInterval(this.draw.bind(this), 500);
 
@@ -79,36 +101,30 @@ export default class EncodeWithProgress extends Page {
   }
 }
 
-async function encodeInner({
+async function multipass({
+  pass1Args,
+  pipeArgs,
+  args,
+  outPath,
   startTime,
   endTime,
-  // pipeArgs,
-  args,
-  pass1Args,
-  outPath,
+  vmafLogPath,
 }: Cmd) {
-  const ewp = new EncodeWithProgress(startTime, endTime);
+  const ewp = new EncodeWithProgress(!!vmafLogPath, startTime, endTime);
   let pass = 0; // single pass
 
   if (pass1Args) {
     pass = 1; // first pass
-    await ewp.startEncode(pass, pass1Args, outPath);
+    await ewp.startEncode(pass, undefined, pass1Args, outPath);
     pass = 2; // second pass
   }
 
-  await ewp.startEncode(pass, args, outPath);
+  await ewp.startEncode(pass, pipeArgs, args, outPath);
 }
 
-export async function doEncode(
-  region: Region,
-  origStartTime: number,
-  origEndTime: number
-) {
-  const format = getCurrentFormat();
-  const cmd = buildCommand(format, region, origStartTime, origEndTime);
-
+async function encodeInner(format: Format, cmd: Cmd) {
   try {
-    await encodeInner(cmd);
+    await multipass(cmd);
   } finally {
     // FIXME: cleanup on player quit?
     // Clean up pass log files.
@@ -121,5 +137,31 @@ export async function doEncode(
     if (cmd.isLive) {
       remove_file(cmd.livePath);
     }
+  }
+}
+
+export function encode(
+  region: Region,
+  origStartTime: number,
+  origEndTime: number
+): Promise<void> {
+  const format = getCurrentFormat();
+  const cmd = buildCommand(format, region, origStartTime, origEndTime);
+  return encodeInner(format, cmd);
+}
+
+export async function calcVMAF(
+  region: Region,
+  origStartTime: number,
+  origEndTime: number
+): Promise<number> {
+  const format = getCurrentFormat();
+  const cmd = buildVmafCommand(format, region, origStartTime, origEndTime);
+  try {
+    await encodeInner(format, cmd);
+    const log = JSON.parse(mp.utils.read_file(cmd.vmafLogPath!));
+    return +log.pooled_metrics.vmaf.harmonic_mean;
+  } finally {
+    remove_file(cmd.vmafLogPath!);
   }
 }

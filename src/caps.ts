@@ -1,16 +1,10 @@
 import type { MP } from "mpv.d.ts";
 
-import { ObjectAssign } from "./lib/helpers";
-
-const DEFAULT_CAPS = {
+let capsInited = false;
+const caps = {
   has_hevc_videotoolbox: false,
   has_aac_at: false,
 };
-
-const caps = { ...DEFAULT_CAPS };
-export type Caps = typeof caps;
-
-let capsInited = false;
 
 function initCaps() {
   if (capsInited) return;
@@ -31,7 +25,9 @@ export function getCaps() {
   return caps;
 }
 
-export function resetCaps() {
+// For testing
+export function testingResetCaps() {
   capsInited = false;
-  ObjectAssign(caps, DEFAULT_CAPS);
+  caps.has_hevc_videotoolbox = false;
+  caps.has_aac_at = false;
 }
