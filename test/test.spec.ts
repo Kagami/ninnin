@@ -226,7 +226,7 @@ test("buildCommand VMAF", () => {
     "/home/user/Downloads/video-[00.01.417-00.03.042].mp4",
     "--external-file=-",
     "--msg-level=all=no,ffmpeg=v",
-    "--lavfi-complex=[vid1][vid2]libvmaf=pool=harmonic_mean:n_threads=10[vo]",
+    "--lavfi-complex=[vid1][vid2]libvmaf=pool=harmonic_mean:n_threads=3[vo]",
     "--of=null",
     "--o=-",
   ]);

@@ -1,5 +1,6 @@
 /** Build command for calculating VMAF. */
 
+import { nproc } from "../lib/os";
 import { type Region } from "../video-to-screen";
 import { type Cmd, buildCommand, getOutPath } from "./cmd";
 import { Format, getCurrentFormat } from "./formats";
@@ -35,7 +36,7 @@ export function buildVmafCommand(
     cmd.outPath, // path we've just encoded to (distorted)
     "--external-file=-", // rawvideo from stdin (reference)
     "--msg-level=all=no,ffmpeg=v", // resulting VMAF score in stderr
-    "--lavfi-complex=[vid1][vid2]libvmaf=pool=harmonic_mean:n_threads=10[vo]",
+    `--lavfi-complex=[vid1][vid2]libvmaf=pool=harmonic_mean:n_threads=${nproc()}[vo]`,
     "--of=null",
     "--o=-",
   ];

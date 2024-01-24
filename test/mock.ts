@@ -138,12 +138,21 @@ const mp = {
     }
     throw new Error("get_property_bool: " + prop);
   },
-  command_native([cmd, ...args]) {
-    if (cmd === "expand-text") {
-      return args[0].replace(
-        "${filename/no-ext}",
-        currentFile["filename/no-ext"]
-      );
+  command_native(table) {
+    const [cmd, args] = Array.isArray(table)
+      ? [table[0], table.slice(1)]
+      : [table.name, table.args];
+    switch (cmd) {
+      case "expand-text":
+        return args[0].replace(
+          "${filename/no-ext}",
+          currentFile["filename/no-ext"]
+        );
+      case "subprocess":
+        if (args[0] === "nproc") {
+          return { stdout: "3" };
+        }
+        throw new Error("subprocess: " + table);
     }
     throw new Error("command_native: " + cmd);
   },
