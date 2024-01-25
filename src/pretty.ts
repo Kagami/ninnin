@@ -1,3 +1,4 @@
+import { StringStartsWith } from "./lib/helpers";
 import type { Format } from "./encode/formats";
 import options from "./options";
 
@@ -70,4 +71,34 @@ export function formatFilename(
   filename = filename.replace(/[<>:"\/\\|?*]/g, "");
 
   return `${filename}.${format.outputExtension}`;
+}
+
+function matchYtID(url: string): string | undefined {
+  // TODO: is that regexp good enough?
+  const m = url.match(/youtu.*([?&]v=|\/)([0-9A-Za-z_-]{11})/);
+  return m ? m[2] : undefined;
+}
+
+/** Simplify URL to use in the title. */
+export function titleURL(url?: string): string | undefined {
+  if (!url) return;
+  if (!/^https?:/.test(url)) return;
+
+  // simplify youtube URLs
+  const ytID = matchYtID(url);
+  if (ytID) return `youtu.be/${ytID}`;
+
+  // strip unnecessary components
+  if (StringStartsWith(url, "http://")) {
+    url = url.slice(7);
+  } else if (StringStartsWith(url, "https://")) {
+    url = url.slice(8);
+  } else {
+    return;
+  }
+  if (StringStartsWith(url, "www.")) {
+    url = url.slice(4);
+  }
+
+  return url;
 }

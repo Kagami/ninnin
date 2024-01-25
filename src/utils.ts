@@ -1,5 +1,4 @@
 import options from "./options";
-import { StringStartsWith } from "./lib/helpers";
 
 export function getErrMsg(err: unknown) {
   return err && (err as Error).message ? (err as Error).message : String(err);
@@ -18,23 +17,6 @@ export function calculate_scale_factor() {
   const baseResY = 720;
   const { height } = mp.get_osd_size()!;
   return height / baseResY;
-}
-
-// TODO: keep only yt-dl video ID?
-export function stripProtocol(url: string | undefined) {
-  if (!url) return;
-  if (StringStartsWith(url, "http://")) {
-    url = url.slice(7);
-  } else if (StringStartsWith(url, "https://")) {
-    url = url.slice(8);
-  } else {
-    // ignore unknown protocol
-    return;
-  }
-  if (StringStartsWith(url, "www.")) {
-    url = url.slice(4);
-  }
-  return url;
 }
 
 // https://stackoverflow.com/a/23329386

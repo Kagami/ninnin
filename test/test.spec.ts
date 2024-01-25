@@ -8,7 +8,7 @@ import { buildCommand, getMetadataTitle } from "../src/encode/cmd";
 import { buildVmafCommand } from "../src/encode/vmaf";
 import { MPVEncode } from "../src/encode/mpv";
 import { Region } from "../src/video-to-screen";
-import { formatFilename } from "../src/pretty";
+import { formatFilename, titleURL } from "../src/pretty";
 
 import {
   setMock,
@@ -66,11 +66,6 @@ test("getShellArgs", () => {
   ]);
 });
 
-test("formatFilename", () => {
-  const filename = formatFilename(formatByName.x264, START_TIME, END_TIME);
-  deepEqual(filename, "video-[00.01.417-00.03.042].mp4");
-});
-
 test("serializeOptions", () => {
   const opts = {
     output_format: "x264",
@@ -88,12 +83,37 @@ test("serializeOptions", () => {
   );
 });
 
+test("formatFilename", () => {
+  const filename = formatFilename(formatByName.x264, START_TIME, END_TIME);
+  deepEqual(filename, "video-[00.01.417-00.03.042].mp4");
+});
+
+test("titleURL", () => {
+  deepEqual(titleURL("file:///path"), undefined);
+  deepEqual(
+    titleURL("https://www.youtube.com/watch?v=ABCDEF-1234"),
+    "youtu.be/ABCDEF-1234"
+  );
+  deepEqual(
+    titleURL("https://www.youtube.com/watch?v=ABCDEF-1234&a=1&b=2"),
+    "youtu.be/ABCDEF-1234"
+  );
+  deepEqual(
+    titleURL("https://www.youtube.com/watch?a=1&v=ABCDEF-1234&b=2"),
+    "youtu.be/ABCDEF-1234"
+  );
+  deepEqual(
+    titleURL("https://youtu.be/ABCDEF-1234?t=120"),
+    "youtu.be/ABCDEF-1234"
+  );
+});
+
 test("getMetadataTitle", () => {
   let title = getMetadataTitle();
   deepEqual(title, "test 비디오");
   setFile({ local: false });
   title = getMetadataTitle();
-  deepEqual(title, "test 비디오 [youtube.com/watch?v=ABCDEF-1234]");
+  deepEqual(title, "test 비디오 (youtu.be/ABCDEF-1234)");
 });
 
 test("x264 twopass", () => {
@@ -157,6 +177,9 @@ test("buildCommand x264/aac", () => {
   deepEqual(getCmd().pass1Args!.slice(-2), ["--of=null", "--o=-"]);
   enableVideoToolbox();
   deepEqual(getArgs().includes("--oac=aac_at"), true);
+
+  setFile({ local: false });
+  deepEqual(getArgs()[1], "https://www.youtube.com/watch?v=ABCDEF-1234");
 });
 
 test("buildCommand x265/aac_at", () => {

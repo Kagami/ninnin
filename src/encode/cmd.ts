@@ -5,9 +5,9 @@ import type { MP } from "mpv.d.ts";
 import type { Format } from "./formats";
 import type { Region } from "../video-to-screen";
 import options from "../options";
-import { byteLength, stripProtocol } from "../utils";
-import { ObjectEntries, StringStartsWith } from "../lib/helpers";
-import { formatFilename, showTime } from "../pretty";
+import { byteLength } from "../utils";
+import { ObjectEntries } from "../lib/helpers";
+import { formatFilename, showTime, titleURL } from "../pretty";
 
 type Track = MP.Prop.Track;
 interface ActiveTracks {
@@ -207,36 +207,33 @@ function get_speed_flags() {
   return ret;
 }
 
-const TITLE_STRIP = 100;
 export function getMetadataTitle() {
+  const TITLE_STRIP = 100;
   const fname = mp.get_property("filename");
-  let title = mp.get_property("media-title");
+  let title = mp.get_property("media-title", "");
   if (title === fname) {
+    // https://mpv.io/manual/master/#command-interface-media-title
     // > If the currently played file has a title tag, use that.
     // > Otherwise, return the filename property.
-    title = undefined;
+    title = "";
   }
-  if (title) {
-    title = title.slice(0, TITLE_STRIP);
-  }
+  // FIXME: surrogate pairs, safe?
+  title = title.slice(0, TITLE_STRIP);
 
-  // For remote files we append/use the URL.
-  // For local files we use the filename if empty.
   if (isStream()) {
-    let url = mp.get_property("path");
-    if (url && !StringStartsWith(url, "http")) {
-      // ignore weird protocols
-      url = undefined;
-    }
-    url = stripProtocol(url);
+    // For remote files we append the URL.
+    let url = titleURL(mp.get_property("path"));
     if (url) {
       url = url.slice(0, TITLE_STRIP);
       // could be 203 chars max here but should be fine
-      title = title ? title + ` [${url}]` : url;
+      title = title ? title + ` (${url})` : url;
     }
   } else {
-    const fnoext = mp.get_property("filename/no-ext", "").slice(0, TITLE_STRIP);
-    title = title || fnoext;
+    // For local files we fallback to filename.
+    if (!title) {
+      title = mp.get_property("filename/no-ext", "");
+      title = title.slice(0, TITLE_STRIP);
+    }
   }
 
   return title;
@@ -332,10 +329,16 @@ function isStream() {
   return mp.get_property_bool("demuxer-via-network");
 }
 
+function stripYtTime(s: string): string {
+  if (!/^https?:.*youtu/.test(s)) return s;
+  return s.replace(/([?&])t=[.\d]+s?(&|$)/, (_, p1, p2) => (p2 ? p1 : ""));
+}
+
 // FIXME: remove side-effects from cmd building routine
 function fixLivePathTime(path: string, startTime: number, endTime: number) {
   let isLive = false;
   let livePath = path;
+
   /*if (isStream()) {
     if (mp.get_property("file-format") === "hls") {
       // FIXME: does it work?
@@ -353,6 +356,12 @@ function fixLivePathTime(path: string, startTime: number, endTime: number) {
       isLive = true;
     }
   }*/
+
+  // remove time seek from URL input path
+  // https://github.com/mpv-player/mpv/issues/13358
+  if (isStream() && !isLive) {
+    livePath = stripYtTime(livePath);
+  }
 
   return { isLive, livePath, startTime, endTime };
 }

@@ -19,7 +19,7 @@ const remoteFile = {
   local: false,
   filename: "watch?v=ABCDEF-1234",
   "filename/no-ext": "watch?v=ABCDEF-1234",
-  path: "https://www.youtube.com/watch?v=ABCDEF-1234",
+  path: "https://www.youtube.com/watch?v=ABCDEF-1234&t=123",
 };
 let currentFile = localFile;
 
