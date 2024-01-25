@@ -85,7 +85,7 @@ test("serializeOptions", () => {
 
 test("formatFilename", () => {
   const filename = formatFilename(formatByName.x264, START_TIME, END_TIME);
-  deepEqual(filename, "video-[00.01.417-00.03.042].mp4");
+  deepEqual(filename, "비디오 [00.01-00.03].mp4");
 });
 
 test("titleURL", () => {
@@ -110,10 +110,10 @@ test("titleURL", () => {
 
 test("getMetadataTitle", () => {
   let title = getMetadataTitle();
-  deepEqual(title, "test 비디오");
+  deepEqual(title, "비디오");
   setFile({ local: false });
   title = getMetadataTitle();
-  deepEqual(title, "test 비디오 (youtu.be/ABCDEF-1234)");
+  deepEqual(title, "비디오 (youtu.be/ABCDEF-1234)");
 });
 
 test("x264 twopass", () => {
@@ -168,9 +168,9 @@ test("buildCommand x264/aac", () => {
     "--vid=1",
     "--aid=1",
     "--sid=no",
-    "--oset-metadata=title=%14%test 비디오",
+    "--oset-metadata=title=%9%비디오",
     "--ofopts-add=movflags=+faststart",
-    "--o=/home/user/Downloads/video-[00.01.417-00.03.042].mp4",
+    "--o=/home/user/Downloads/비디오 [00.01-00.03].mp4",
   ]);
 
   options.target_filesize = 1024;
@@ -201,10 +201,10 @@ test("buildCommand x265/aac_at", () => {
     "--vid=1",
     "--aid=1",
     "--sid=no",
-    "--oset-metadata=title=%14%test 비디오",
+    "--oset-metadata=title=%9%비디오",
     "--ovcopts-add=x265-params=log-level=warning",
     "--ofopts-add=movflags=+faststart",
-    "--o=/home/user/Downloads/video-[00.01.417-00.03.042].mp4",
+    "--o=/home/user/Downloads/비디오 [00.01-00.03].mp4",
   ]);
 });
 
@@ -226,9 +226,9 @@ test("buildCommand svtav1/opus", () => {
     "--vid=1",
     "--aid=1",
     "--sid=no",
-    "--oset-metadata=title=%14%test 비디오",
+    "--oset-metadata=title=%9%비디오",
     "--ofopts-add=movflags=+faststart",
-    "--o=/home/user/Downloads/video-[00.01.417-00.03.042].mp4",
+    "--o=/home/user/Downloads/비디오 [00.01-00.03].mp4",
   ]);
   options.svtav1_film_grain = 8;
   deepEqual(
@@ -255,9 +255,9 @@ test("buildCommand VMAF", () => {
   deepEqual(cmd.args, [
     "mpv",
     "--no-terminal",
-    "/home/user/Downloads/video-[00.01.417-00.03.042].mp4",
+    "/home/user/Downloads/비디오 [00.01-00.03].mp4",
     "--external-file=-",
-    "--lavfi-complex=[vid1][vid2]libvmaf=n_threads=3:log_path='/home/user/Downloads/.ninnin-video-[00.01.417-00.03.042].mp4.json':log_fmt=json[vo]",
+    "--lavfi-complex=[vid1][vid2]libvmaf=n_threads=3:log_path='/home/user/Downloads/.ninnin-비디오 [00.01-00.03].mp4.json':log_fmt=json[vo]",
     "--of=null",
     "--o=-",
   ]);
@@ -268,9 +268,9 @@ test("MPVEncode", () => {
   const cmd = getCmd();
   const mpv = new MPVEncode(undefined, cmd.args, cmd.outPath);
   deepEqual(mpv.args.slice(-3), [
-    "--o=/home/user/Downloads/video-[00.01.417-00.03.042].mp4",
+    "--o=/home/user/Downloads/비디오 [00.01-00.03].mp4",
     "--script=/home/user/.config/mpv/scripts/ninnin.js",
-    "--script-opts=ninnin-encoding=/home/user/Downloads/.ninnin-video-[00.01.417-00.03.042].mp4.log",
+    "--script-opts=ninnin-encoding=/home/user/Downloads/.ninnin-비디오 [00.01-00.03].mp4.log",
   ]);
   const cmd2 = getVmafCmd();
   const mpv2 = new MPVEncode(cmd2.pipeArgs, cmd2.args, cmd2.outPath);
@@ -278,9 +278,9 @@ test("MPVEncode", () => {
     "sh",
     "-c",
     "mpv /home/user/video.mp4 --no-terminal --start=0:00:01.417 --end=0:00:03.042 --ovc=rawvideo --vid=1 --aid=no --sid=no --of=nut --o=- " +
-      "| mpv --no-terminal '/home/user/Downloads/video-[00.01.417-00.03.042].mp4' --external-file=-" +
-      " '--lavfi-complex=[vid1][vid2]libvmaf=n_threads=3:log_path='\\''/home/user/Downloads/.ninnin-video-[00.01.417-00.03.042].mp4.json'\\'':log_fmt=json[vo]' --of=null --o=-" +
-      " --script=/home/user/.config/mpv/scripts/ninnin.js '--script-opts=ninnin-encoding=/home/user/Downloads/.ninnin-video-[00.01.417-00.03.042].mp4.log'",
+      "| mpv --no-terminal '/home/user/Downloads/비디오 [00.01-00.03].mp4' --external-file=-" +
+      " '--lavfi-complex=[vid1][vid2]libvmaf=n_threads=3:log_path='\\''/home/user/Downloads/.ninnin-비디오 [00.01-00.03].mp4.json'\\'':log_fmt=json[vo]' --of=null --o=-" +
+      " --script=/home/user/.config/mpv/scripts/ninnin.js '--script-opts=ninnin-encoding=/home/user/Downloads/.ninnin-비디오 [00.01-00.03].mp4.log'",
   ]);
 });
 

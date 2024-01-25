@@ -209,14 +209,8 @@ function get_speed_flags() {
 
 export function getMetadataTitle() {
   const TITLE_STRIP = 100;
-  const fname = mp.get_property("filename");
-  let title = mp.get_property("media-title", "");
-  if (title === fname) {
-    // https://mpv.io/manual/master/#command-interface-media-title
-    // > If the currently played file has a title tag, use that.
-    // > Otherwise, return the filename property.
-    title = "";
-  }
+  const ppos = mp.get_property_number("playlist-pos", 0);
+  let title = mp.get_property(`playlist/${ppos}/title`, "");
   // FIXME: surrogate pairs, safe?
   title = title.slice(0, TITLE_STRIP);
 
@@ -226,7 +220,7 @@ export function getMetadataTitle() {
     if (url) {
       url = url.slice(0, TITLE_STRIP);
       // could be 203 chars max here but should be fine
-      title = title ? title + ` (${url})` : url;
+      title = title ? `${title} (${url})` : url;
     }
   } else {
     // For local files we fallback to filename.

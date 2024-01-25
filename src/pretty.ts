@@ -35,42 +35,35 @@ export function formatFilename(
   startTime: number,
   endTime: number
 ) {
-  // XXX: use proper parser if need to support more props, see
-  // https://github.com/mpv-player/mpv/blob/5f7ce41/player/screenshot.c#L141
+  let fname = options.output_template;
+
+  // expand our custom props
+  const ppos = mp.get_property_number("playlist-pos", 0);
   const replaceTable: [RegExp, string][] = [
     [/%s/g, showTimePath(startTime)],
     [/%S/g, showTimePath(startTime, { ms: false })],
     [/%e/g, showTimePath(endTime)],
     [/%E/g, showTimePath(endTime, { ms: false })],
-    [
-      /%M/g,
-      mp.get_property_native("aid") &&
-      !mp.get_property_bool("mute") &&
-      format.audioCodec
-        ? "-audio"
-        : "",
-    ],
-    [
-      /%R/g,
-      options.scale_height !== -1
-        ? `-${options.scale_height}p`
-        : `-${mp.get_property_number("height")}p`,
-    ],
+    // media-title fallbacks to filename with ext
+    [/%T/g, `\${playlist/${ppos}/title:\${filename/no-ext}}`],
   ];
-
-  let filename = options.output_template;
   for (const [regex, value] of replaceTable) {
-    filename = filename.replace(regex, value);
+    fname = fname.replace(regex, value);
   }
 
-  filename = mp.command_native(["expand-text", filename]) as string;
+  // expand mpv props
+  fname = mp.command_native(["expand-text", fname]) as string;
 
   // Remove invalid chars
   // Windows: < > : " / \ | ? *
   // Linux: /
-  filename = filename.replace(/[<>:"\/\\|?*]/g, "");
+  fname = fname.replace(/[<>:"\/\\|?*]/g, "");
 
-  return `${filename}.${format.outputExtension}`;
+  // Normally ~255 but keep space for ".ninnin" prefixes etc.
+  // FIXME: what to do with too long titles (we will truncate timestamps)?
+  const MAX_NAME_LEN = 200;
+  fname = fname.slice(0, MAX_NAME_LEN);
+  return `${fname}.${format.outputExtension}`;
 }
 
 function matchYtID(url: string): string | undefined {

@@ -65,7 +65,8 @@ const mp = {
       case "stream-open-filename":
         return currentFile.path;
       case "media-title":
-        return "test 비디오";
+      case "playlist/0/title":
+        return "비디오";
       case "sub-ass-override":
         return "yes";
       case "sub-ass-style-overrides":
@@ -119,6 +120,8 @@ const mp = {
   },
   get_property_number(prop) {
     switch (prop) {
+      case "playlist-pos":
+        return 0;
       case "height":
         return 1080;
       case "brightness":
@@ -148,8 +151,8 @@ const mp = {
     switch (cmd) {
       case "expand-text":
         return args[0].replace(
-          "${filename/no-ext}",
-          currentFile["filename/no-ext"]
+          "${playlist/0/title:${filename/no-ext}}",
+          mp.get_property("media-title")
         );
       case "subprocess":
         if (args[0] === "nproc") {

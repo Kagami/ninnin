@@ -10,12 +10,11 @@ const DEFAULT_OPTIONS = {
   // A starting "~" will be replaced by the home dir.
   output_directory: "~/Downloads", // FIXME: does it work everywhere?
   // Template string for the output file
+  // %T - Title of the file or basename
   // %s, %e - Start and end time, with milliseconds
   // %S, %E - Start and end time, without milliseconds
-  // %M - "-audio", if audio is enabled, empty otherwise
-  // %R - "-(height)p", where height is the video's height, or scale_height, if it's enabled.
   // Property expansion is supported, see https://mpv.io/manual/master/#property-expansion
-  output_template: "${filename/no-ext}-[%s-%e]",
+  output_template: "%T [%S-%E]",
   // If set, writes video's filename or stream info to the "Title" field.
   write_metadata_title: true,
   // Sets the output format, from a few predefined ones.
