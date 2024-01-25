@@ -7,7 +7,7 @@ import { testingResetPlatform } from "../src/lib/os";
 const DEFAULT_OPTIONS = { ...options };
 
 let currentPlatform = "linux";
-let videoToolboxEnabled = false;
+let audioToolboxEnabled = false;
 
 const localFile = {
   local: true,
@@ -113,9 +113,7 @@ const mp = {
       case "vf":
         return [];
       case "encoder-list":
-        return videoToolboxEnabled
-          ? [{ driver: "hevc_videotoolbox" }, { driver: "aac_at" }]
-          : [];
+        return audioToolboxEnabled ? [{ driver: "aac_at" }] : [];
     }
     throw new Error("get_property_native: " + prop);
   },
@@ -176,9 +174,9 @@ export function setFile({ local } = { local: true }) {
   currentFile = local ? localFile : remoteFile;
 }
 
-export function enableVideoToolbox() {
+export function enableAudioToolbox() {
   testingResetCaps();
-  videoToolboxEnabled = true;
+  audioToolboxEnabled = true;
 }
 
 export function resetOpts() {
@@ -187,5 +185,5 @@ export function resetOpts() {
   testingResetCaps();
   currentPlatform = "linux";
   currentFile = localFile;
-  videoToolboxEnabled = false;
+  audioToolboxEnabled = false;
 }

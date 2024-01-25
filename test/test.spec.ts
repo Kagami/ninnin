@@ -12,7 +12,7 @@ import { formatFilename, titleURL } from "../src/pretty";
 
 import {
   setMock,
-  enableVideoToolbox,
+  enableAudioToolbox,
   resetOpts,
   setFile,
   setPlatform,
@@ -175,7 +175,7 @@ test("buildCommand x264/aac", () => {
 
   options.target_filesize = 1024;
   deepEqual(getCmd().pass1Args!.slice(-2), ["--of=null", "--o=-"]);
-  enableVideoToolbox();
+  enableAudioToolbox();
   deepEqual(getArgs().includes("--oac=aac_at"), true);
 
   setFile({ local: false });
@@ -183,7 +183,7 @@ test("buildCommand x264/aac", () => {
 });
 
 test("buildCommand x265/aac_at", () => {
-  enableVideoToolbox();
+  enableAudioToolbox();
   options.output_format = "x265";
   deepEqual(getArgs(), [
     "mpv",
@@ -208,33 +208,8 @@ test("buildCommand x265/aac_at", () => {
   ]);
 });
 
-test("buildCommand hevc_vtb/aac_at", () => {
-  enableVideoToolbox();
-  options.output_format = "hevc_vtb";
-  deepEqual(getArgs(), [
-    "mpv",
-    "/home/user/video.mp4",
-    "--no-terminal",
-    "--start=0:00:01.417",
-    "--end=0:00:03.042",
-    "--ovc=hevc_videotoolbox",
-    "--ovcopts-add=codec_tag=0x31637668",
-    "--ovcopts-add=global_quality=7670",
-    "--ovcopts-add=flags=+qscale",
-    "--oac=aac_at",
-    "--oacopts-add=aac_at_mode=cvbr",
-    "--oacopts-add=b=192k",
-    "--vid=1",
-    "--aid=1",
-    "--sid=no",
-    "--oset-metadata=title=%14%test 비디오",
-    "--ofopts-add=movflags=+faststart",
-    "--o=/home/user/Downloads/video-[00.01.417-00.03.042].mp4",
-  ]);
-});
-
 test("buildCommand svtav1/opus", () => {
-  enableVideoToolbox();
+  enableAudioToolbox();
   options.output_format = "svtav1";
   deepEqual(getArgs(), [
     "mpv",
@@ -310,12 +285,9 @@ test("MPVEncode", () => {
 });
 
 test("10-bit", () => {
-  enableVideoToolbox();
   options.output_format = "x265";
   options.force_10bit = true;
   deepEqual(getArgs().includes("--vf-add=format=yuv420p10le"), true);
-  options.output_format = "hevc_vtb";
-  deepEqual(getArgs().includes("--vf-add=format=p010le"), true);
   options.output_format = "svtav1";
   deepEqual(getArgs().includes("--vf-add=format=yuv420p10le"), true);
 });

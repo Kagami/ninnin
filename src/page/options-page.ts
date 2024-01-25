@@ -70,7 +70,6 @@ export default class EncodeOptionsPage extends Page {
     const svtPresetOpts = { max: 12 };
 
     const xCrfOpts = { max: 51 };
-    const vtbCrfOpts = { max: 100 };
     const av1CrfOpts = { max: 63 };
 
     const svtFilmGrainOpts = {
@@ -102,7 +101,6 @@ export default class EncodeOptionsPage extends Page {
       ["svtav1_preset", new EncOptionInt("Preset", options.svtav1_preset, svtPresetOpts, () => this.svtav1Selected())],
 
       ["x_crf", new EncOptionInt("Video quality", options.x_crf, xCrfOpts, () => this.xCrfVisible())],
-      ["vtb_crf", new EncOptionInt("Video quality", options.vtb_crf, vtbCrfOpts, () => this.vtbCrfVisible())],
       ["av1_crf", new EncOptionInt("Video quality", options.av1_crf, av1CrfOpts, () => this.av1CrfVisible())],
       ["svtav1_film_grain", new EncOptionInt("Film grain", options.svtav1_film_grain, svtFilmGrainOpts, () => this.svtav1Selected())],
 
@@ -147,9 +145,6 @@ export default class EncodeOptionsPage extends Page {
   }
   xCrfVisible() {
     return (this.x264Selected() || this.x265Selected()) && !this.filesize();
-  }
-  vtbCrfVisible() {
-    return this.formatName() === "hevc_vtb" && !this.filesize();
   }
   av1CrfVisible() {
     return this.svtav1Selected() && !this.filesize();

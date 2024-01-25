@@ -10,7 +10,6 @@ export class Format {
   outputExtension = "mp4";
   twoPassSupported = true;
   highBitDepthSupported = true;
-  hwAccelerated = false;
   metadataSupported = true;
 
   getDisplayName() {
@@ -29,12 +28,7 @@ export class Format {
     // FIXME: is that no-op in case of 10bit content?
     // FIXME: maybe should be before scale for better quality or resize?
     if (options.force_10bit && this.highBitDepthSupported) {
-      if (this.hwAccelerated) {
-        // like NV12 with 10bpp per component (packed)
-        return ["format=p010le"];
-      } else {
-        return ["format=yuv420p10le"];
-      }
+      return ["format=yuv420p10le"];
     } else {
       return [];
     }
@@ -195,32 +189,6 @@ class X265 extends Format {
   }
 }
 
-class HEVC_VTB extends Format {
-  displayName = "hevc_vtb/aac_at";
-  videoCodec = "hevc_videotoolbox";
-  audioCodec = "aac";
-  twoPassSupported = false; // FIXME: check
-  hwAccelerated = true;
-  private readonly FF_QP2LAMBDA = 118;
-
-  getVideoFlags() {
-    return [
-      `--ovc=${this.videoCodec}`,
-      `--ovcopts-add=codec_tag=0x31637668`, // hvc1 tag, for compatibility with Apple devices
-    ];
-  }
-  getVideoQualityFlags() {
-    return [
-      `--ovcopts-add=global_quality=${options.vtb_crf * this.FF_QP2LAMBDA}`,
-      "--ovcopts-add=flags=+qscale",
-    ];
-  }
-
-  getAudioFlags() {
-    return ["--oac=aac_at", "--oacopts-add=aac_at_mode=cvbr"];
-  }
-}
-
 class SVTAV1 extends Format {
   displayName = "svtav1/opus";
   videoCodec = "libsvtav1";
@@ -259,7 +227,6 @@ class SVTAV1 extends Format {
 export const formats: [string, Format][] = [
   ["x264", new X264()],
   ["x265", new X265()],
-  ["hevc_vtb", new HEVC_VTB()],
   ["svtav1", new SVTAV1()],
 ];
 export const formatByName = ObjectFromEntries(formats);

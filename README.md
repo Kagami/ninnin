@@ -2,11 +2,10 @@
 
 [mpv](https://mpv.io/)-based video encoding tool. Allows you to quickly cut clips
 from video you're currently watching, including YouTube ones, without having to
-download it fully or open in another program. Currently supported codecs:
+download it fully or open in another program. Currently supported encoders:
 
 - x264/aac
 - x265/aac
-- hevc_videotoolbox/aac_at
 - svtav1/opus (default)
 
 The main focus is simplicity and speed/size/quality tuned towards speed (30fps+

@@ -29,10 +29,6 @@ const DEFAULT_OPTIONS = {
   // https://trac.ffmpeg.org/wiki/Encode/H.265
   // CRF for x264/x265. 18=visually lossless. might consider 23-25 for smaller files
   x_crf: 20,
-  // https://trac.ffmpeg.org/wiki/HWAccelIntro#VideoToolbox
-  // https://stackoverflow.com/a/69668183
-  // CRF for VideoToolBox. qscale=65 is "acceptable"
-  vtb_crf: 65,
   // https://trac.ffmpeg.org/wiki/Encode/AV1
   // CRF for libaom/svt. av1_crf23 ~= x264_crf19, 30 ~= 24? 0-51 vs 0-63 ranges
   av1_crf: 30,
