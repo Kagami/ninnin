@@ -38,7 +38,7 @@ export function stripProtocol(url: string | undefined) {
 }
 
 // https://stackoverflow.com/a/23329386
-export function byteLength(str: string) {
+/*export function byteLength(str: string) {
   // returns the byte length of an utf8 string
   var s = str.length;
   for (var i = str.length - 1; i >= 0; i--) {
@@ -48,4 +48,15 @@ export function byteLength(str: string) {
     if (code >= 0xdc00 && code <= 0xdfff) i--; //trail surrogate
   }
   return s;
+}*/
+
+// https://stackoverflow.com/a/12203648
+// FIXME: very slow, but charCode solution is broken on MuJS 1.3.4, see
+// https://github.com/ccxvii/mujs/commit/5762138384aae4d5e034dbbd0f514ac2598c4ccf
+// FIXME: fixed because of MuJS split bug:
+// https://github.com/ccxvii/mujs/issues/130
+export function byteLength(s: string) {
+  const encoded = encodeURI(s);
+  const ascii = encoded.replace(/%../g, "");
+  return ascii.length + Math.floor((encoded.length - ascii.length) / 3);
 }

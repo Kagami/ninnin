@@ -47,6 +47,8 @@ beforeEach(() => {
 
 test("byteLength", () => {
   deepEqual(byteLength("세모콘"), 9);
+  deepEqual(byteLength("🔥🤖👽"), 12);
+  deepEqual(byteLength("test 🔥"), 9);
 });
 
 test("getShellArgs", () => {
