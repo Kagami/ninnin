@@ -11,6 +11,7 @@ export class Format {
   outputExtension = "mp4";
   highBitDepthSupported = true;
   metadataSupported = true;
+  twoPassSupported = true;
 
   getDisplayName() {
     return this.displayName;
@@ -189,6 +190,7 @@ class SVTAV1 extends Format {
   displayName = "svtav1/opus";
   videoCodec = "libsvtav1";
   audioCodec = "libopus";
+  twoPassSupported = false; // https://gitlab.com/AOMediaCodec/SVT-AV1/-/issues/1867
 
   getVideoFlags() {
     // https://gitlab.com/AOMediaCodec/SVT-AV1/-/blob/master/Docs/Parameters.md#gop-size-and-type-options
@@ -219,18 +221,6 @@ class SVTAV1 extends Format {
 
   getPass0Flags(_outPath: string) {
     return this.mergeSVTAV1Params();
-  }
-  getPass1Flags(outPath: string) {
-    return this.mergeSVTAV1Params(
-      "pass=1",
-      `stats=${this.getPassLogPath(outPath)}`
-    );
-  }
-  getPass2Flags(outPath: string) {
-    return this.mergeSVTAV1Params(
-      "pass=2",
-      `stats=${this.getPassLogPath(outPath)}`
-    );
   }
 }
 

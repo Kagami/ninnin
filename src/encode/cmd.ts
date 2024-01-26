@@ -381,8 +381,8 @@ export function getOutPath(format: Format, startTime: number, endTime: number) {
   return mp.utils.join_path(dir, formatted_filename);
 }
 
-function shouldTwoPass(): boolean {
-  return !!options.target_filesize;
+function shouldTwoPass(format: Format): boolean {
+  return !!options.target_filesize && format.twoPassSupported;
 }
 
 export interface Cmd {
@@ -500,7 +500,7 @@ export function buildCommand(
   // finalize pass 1 flags
   // FIXME: don't encode audio for pass=1
   let pass1Args: string[] | undefined;
-  if (shouldTwoPass()) {
+  if (shouldTwoPass(format)) {
     pass1Args = args.slice();
     pass1Args.push(...format.getPass1Flags(outPath));
     pass1Args.push("--of=null");
@@ -508,7 +508,7 @@ export function buildCommand(
   }
 
   // finalize pass 0/2 flags
-  if (shouldTwoPass()) {
+  if (shouldTwoPass(format)) {
     args.push(...format.getPass2Flags(outPath));
   } else {
     args.push(...format.getPass0Flags(outPath));

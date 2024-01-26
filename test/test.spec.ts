@@ -149,18 +149,6 @@ test("x265 twopass", () => {
   ]);
 });
 
-test("svtav1 twopass", () => {
-  deepEqual(formatByName.svtav1.getPass1Flags("/tmp/out.mp4"), [
-    "--ovcopts-add=svtav1-params=tune=0:pass=1:stats=/tmp/.ninnin-123.passlog",
-  ]);
-  deepEqual(formatByName.svtav1.getPass2Flags("/tmp/out.mp4"), [
-    "--ovcopts-add=svtav1-params=tune=0:pass=2:stats=/tmp/.ninnin-123.passlog",
-  ]);
-  deepEqual(formatByName.svtav1.getPassFilePaths("/tmp/out.mp4"), [
-    "/tmp/.ninnin-123.passlog",
-  ]);
-});
-
 test("buildCommand x264/aac", () => {
   options.output_format = "x264";
   deepEqual(getArgs(), [
