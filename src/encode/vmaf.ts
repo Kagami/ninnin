@@ -56,8 +56,8 @@ export function buildVmafCommand(
   const logPath = escapeFilterArg(cmd.vmafLogPath);
   cmd.args = [
     "mpv",
-    "--no-terminal",
     cmd.outPath, // path we've just encoded to (distorted)
+    "--msg-level=all=warn",
     "--external-file=-", // rawvideo from stdin (reference)
     `--lavfi-complex=[vid1][vid2]libvmaf=n_threads=${nproc()}:log_path=${logPath}:log_fmt=json[vo]`,
     "--of=null",

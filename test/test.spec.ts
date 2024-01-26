@@ -166,7 +166,7 @@ test("buildCommand x264/aac", () => {
   deepEqual(getArgs(), [
     "mpv",
     "/home/user/video.mp4",
-    "--no-terminal",
+    "--msg-level=all=warn",
     "--start=0:00:01.417",
     "--end=0:00:03.042",
     "--ovc=libx264",
@@ -197,7 +197,7 @@ test("buildCommand x265/aac_at", () => {
   deepEqual(getArgs(), [
     "mpv",
     "/home/user/video.mp4",
-    "--no-terminal",
+    "--msg-level=all=warn",
     "--start=0:00:01.417",
     "--end=0:00:03.042",
     "--ovc=libx265",
@@ -223,7 +223,7 @@ test("buildCommand svtav1/opus", () => {
   deepEqual(getArgs(), [
     "mpv",
     "/home/user/video.mp4",
-    "--no-terminal",
+    "--msg-level=all=warn",
     "--start=0:00:01.417",
     "--end=0:00:03.042",
     "--ovc=libsvtav1",
@@ -251,7 +251,7 @@ test("buildCommand VMAF", () => {
   deepEqual(cmd.pipeArgs, [
     "mpv",
     "/home/user/video.mp4",
-    "--no-terminal",
+    "--msg-level=all=warn",
     "--start=0:00:01.417",
     "--end=0:00:03.042",
     "--ovc=rawvideo",
@@ -263,8 +263,8 @@ test("buildCommand VMAF", () => {
   ]);
   deepEqual(cmd.args, [
     "mpv",
-    "--no-terminal",
     "/home/user/Downloads/비디오 [00.01-00.03].mp4",
+    "--msg-level=all=warn",
     "--external-file=-",
     "--lavfi-complex=[vid1][vid2]libvmaf=n_threads=3:log_path='/home/user/Downloads/.ninnin-비디오 [00.01-00.03].mp4.json':log_fmt=json[vo]",
     "--of=null",
@@ -286,8 +286,8 @@ test("MPVEncode", () => {
   deepEqual(mpv2.args, [
     "sh",
     "-c",
-    "mpv /home/user/video.mp4 --no-terminal --start=0:00:01.417 --end=0:00:03.042 --ovc=rawvideo --vid=1 --aid=no --sid=no --of=nut --o=- " +
-      "| mpv --no-terminal '/home/user/Downloads/비디오 [00.01-00.03].mp4' --external-file=-" +
+    "mpv /home/user/video.mp4 --msg-level=all=warn --start=0:00:01.417 --end=0:00:03.042 --ovc=rawvideo --vid=1 --aid=no --sid=no --of=nut --o=- " +
+      "| mpv '/home/user/Downloads/비디오 [00.01-00.03].mp4' --msg-level=all=warn --external-file=-" +
       " '--lavfi-complex=[vid1][vid2]libvmaf=n_threads=3:log_path='\\''/home/user/Downloads/.ninnin-비디오 [00.01-00.03].mp4.json'\\'':log_fmt=json[vo]' --of=null --o=-" +
       " --script=/home/user/.config/mpv/scripts/ninnin.js '--script-opts=ninnin-encoding=/home/user/Downloads/.ninnin-비디오 [00.01-00.03].mp4.log'",
   ]);

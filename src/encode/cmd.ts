@@ -425,7 +425,7 @@ export function buildCommand(
   const args = [
     "mpv",
     livePath,
-    "--no-terminal",
+    "--msg-level=all=warn",
     // FIXME: shift by 1ms to be frame exact
     // FIXME: not needed if encoding full file?
     "--start=" + showTime(startTime, { hr: true }),

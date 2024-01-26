@@ -63,7 +63,7 @@ export default class ResultPage extends Page {
   private preview() {
     mp.command_native({
       name: "subprocess",
-      args: ["mpv", "--no-terminal", "--loop-file=inf", this.outPath],
+      args: ["mpv", this.outPath, "--msg-level=all=warn", "--loop-file=inf"],
       playback_only: false,
     } satisfies MP.Cmd.SubprocessArgs);
   }
