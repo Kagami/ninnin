@@ -8,7 +8,6 @@ export class Format {
   videoCodec = "";
   audioCodec = "";
   outputExtension = "mp4";
-  twoPassSupported = true;
   highBitDepthSupported = true;
   metadataSupported = true;
 
@@ -59,25 +58,21 @@ export class Format {
   // Two pass routines
   protected getPassLogPath(outPath: string) {
     const [dir, fname] = mp.utils.split_path(outPath);
-    // custom log path for x264, x265
     const logName = `.ninnin-${fname}.passlog`;
     return mp.utils.join_path(dir, logName);
   }
-  protected getPassCommonFlags(_outPath: string): string[] {
+  /** Flags for single pass mode */
+  getPass0Flags(_outPath: string): string[] {
     return [];
   }
-  getPass0Flags(_outPath: string): string[] {
-    return []; // flags for normal single pass mode
+  getPass1Flags(_outPath: string): string[] {
+    return [];
   }
-  getPass1Flags(outPath: string) {
-    return ["--ovcopts-add=flags=+pass1", ...this.getPassCommonFlags(outPath)];
+  getPass2Flags(_outPath: string): string[] {
+    return [];
   }
-  getPass2Flags(outPath: string) {
-    return ["--ovcopts-add=flags=+pass2", ...this.getPassCommonFlags(outPath)];
-  }
-  getPassFilePaths(outPath: string) {
-    // created by mpv (empty in case of x264, x265)
-    return [`${outPath}-video-pass1.log`];
+  getPassFilePaths(outPath: string): string[] {
+    return [this.getPassLogPath(outPath)];
   }
 }
 
@@ -111,18 +106,26 @@ class X264 extends Format {
     }
   }
 
-  getPassCommonFlags(outPath: string) {
-    // specify passlog path for x264
-    return [`--ovcopts-add=stats=${this.getPassLogPath(outPath)}`];
+  getPass1Flags(outPath: string) {
+    return [
+      // FIXME: should we use -x264-params instead?
+      "--ovcopts-add=flags=+pass1",
+      `--ovcopts-add=stats=${this.getPassLogPath(outPath)}`,
+    ];
+  }
+  getPass2Flags(outPath: string) {
+    return [
+      "--ovcopts-add=flags=+pass2",
+      `--ovcopts-add=stats=${this.getPassLogPath(outPath)}`,
+    ];
   }
   getPassFilePaths(outPath: string) {
+    const pathMPV = `${outPath}-video-pass1.log`; // created by mpv
     const pathMain = this.getPassLogPath(outPath); // normal log
-    const pathMBtree = pathMain + ".mbtree"; // additional mbtree log
     const pathMainTemp = pathMain + ".temp"; // during pass1 run
+    const pathMBtree = pathMain + ".mbtree"; // additional mbtree log
     const pathMBtreeTemp = pathMBtree + ".temp"; // during pass1 run
-    return super
-      .getPassFilePaths(outPath)
-      .concat(pathMain, pathMBtree, pathMainTemp, pathMBtreeTemp);
+    return [pathMPV, pathMain, pathMainTemp, pathMBtree, pathMBtreeTemp];
   }
 }
 
@@ -154,38 +157,32 @@ class X265 extends Format {
     }
   }
 
-  private getCommonX265Params() {
-    return ["log-level=warning"];
-  }
-  private mergeX265Params(...params: string[]) {
-    params = this.getCommonX265Params().concat(params);
-    return "--ovcopts-add=x265-params=" + params.join(":");
+  private mergeX265Params(...custom: string[]) {
+    const params = ["log-level=warning"].concat(custom);
+    return ["--ovcopts-add=x265-params=" + params.join(":")];
   }
 
-  // XXX: hackish method to merge all flags we need into single x265-params
-  getPass0Flags(_outPath: string): string[] {
-    return [this.mergeX265Params()];
+  getPass0Flags(_outPath: string) {
+    return this.mergeX265Params();
   }
   getPass1Flags(outPath: string) {
-    return [
-      ...super.getPass1Flags(outPath),
-      this.mergeX265Params("pass=1", `stats=${this.getPassLogPath(outPath)}`),
-    ];
+    return this.mergeX265Params(
+      "pass=1",
+      `stats=${this.getPassLogPath(outPath)}`
+    );
   }
   getPass2Flags(outPath: string) {
-    return [
-      ...super.getPass2Flags(outPath),
-      this.mergeX265Params("pass=2", `stats=${this.getPassLogPath(outPath)}`),
-    ];
+    return this.mergeX265Params(
+      "pass=2",
+      `stats=${this.getPassLogPath(outPath)}`
+    );
   }
   getPassFilePaths(outPath: string) {
     const pathMain = this.getPassLogPath(outPath); // normal log
-    const pathCUtree = pathMain + ".cutree"; // additional cutree log
     const pathMainTemp = pathMain + ".temp"; // during pass1 run
+    const pathCUtree = pathMain + ".cutree"; // additional cutree log
     const pathCUtreeTemp = pathCUtree + ".temp"; // during pass1 run
-    return super
-      .getPassFilePaths(outPath)
-      .concat(pathMain, pathCUtree, pathMainTemp, pathCUtreeTemp);
+    return [pathMain, pathMainTemp, pathCUtree, pathCUtreeTemp];
   }
 }
 
@@ -193,18 +190,6 @@ class SVTAV1 extends Format {
   displayName = "svtav1/opus";
   videoCodec = "libsvtav1";
   audioCodec = "libopus";
-  twoPassSupported = false; // FIXME: check
-
-  private mergeSVTAV1Params() {
-    // https://gitlab.com/AOMediaCodec/SVT-AV1/-/blob/master/Docs/Ffmpeg.md
-    // subjective visual quality (with higher sharpness), instead of objective quality (PSNR)
-    const params = ["tune=0"];
-    // film-grain=8 recommended, but quite slow
-    if (options.svtav1_film_grain) {
-      params.push(`film-grain=${options.svtav1_film_grain}`);
-    }
-    return "--ovcopts-add=svtav1-params=" + params.join(":");
-  }
 
   getVideoFlags() {
     // https://gitlab.com/AOMediaCodec/SVT-AV1/-/blob/master/Docs/Parameters.md#gop-size-and-type-options
@@ -212,7 +197,6 @@ class SVTAV1 extends Format {
     return [
       `--ovc=${this.videoCodec}`,
       `--ovcopts-add=preset=${options.svtav1_preset}`,
-      this.mergeSVTAV1Params(),
     ];
   }
   getVideoQualityFlags() {
@@ -221,6 +205,33 @@ class SVTAV1 extends Format {
     // > Note that in FFmpeg versions prior to 4.3, triggering the CRF mode also
     // > requires setting the bitrate to 0 with -b:v 0.
     return [`--ovcopts-add=crf=${options.av1_crf}`];
+  }
+
+  private mergeSVTAV1Params(...custom: string[]) {
+    // subjective visual quality (with higher sharpness), instead of objective quality (PSNR)
+    const params = ["tune=0"];
+    // film-grain=8 recommended, but quite slow
+    if (options.svtav1_film_grain) {
+      params.push(`film-grain=${options.svtav1_film_grain}`);
+    }
+    params.push(...custom);
+    return ["--ovcopts-add=svtav1-params=" + params.join(":")];
+  }
+
+  getPass0Flags(_outPath: string) {
+    return this.mergeSVTAV1Params();
+  }
+  getPass1Flags(outPath: string) {
+    return this.mergeSVTAV1Params(
+      "pass=1",
+      `stats=${this.getPassLogPath(outPath)}`
+    );
+  }
+  getPass2Flags(outPath: string) {
+    return this.mergeSVTAV1Params(
+      "pass=2",
+      `stats=${this.getPassLogPath(outPath)}`
+    );
   }
 }
 

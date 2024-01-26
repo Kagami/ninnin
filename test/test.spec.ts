@@ -128,27 +128,36 @@ test("x264 twopass", () => {
   deepEqual(formatByName.x264.getPassFilePaths("/tmp/out.mp4"), [
     "/tmp/out.mp4-video-pass1.log",
     "/tmp/.ninnin-out.mp4.passlog",
-    "/tmp/.ninnin-out.mp4.passlog.mbtree",
     "/tmp/.ninnin-out.mp4.passlog.temp",
+    "/tmp/.ninnin-out.mp4.passlog.mbtree",
     "/tmp/.ninnin-out.mp4.passlog.mbtree.temp",
   ]);
 });
 
 test("x265 twopass", () => {
   deepEqual(formatByName.x265.getPass1Flags("/tmp/out.mp4"), [
-    "--ovcopts-add=flags=+pass1",
     "--ovcopts-add=x265-params=log-level=warning:pass=1:stats=/tmp/.ninnin-out.mp4.passlog",
   ]);
   deepEqual(formatByName.x265.getPass2Flags("/tmp/out.mp4"), [
-    "--ovcopts-add=flags=+pass2",
     "--ovcopts-add=x265-params=log-level=warning:pass=2:stats=/tmp/.ninnin-out.mp4.passlog",
   ]);
   deepEqual(formatByName.x265.getPassFilePaths("/tmp/out.mp4"), [
-    "/tmp/out.mp4-video-pass1.log",
     "/tmp/.ninnin-out.mp4.passlog",
-    "/tmp/.ninnin-out.mp4.passlog.cutree",
     "/tmp/.ninnin-out.mp4.passlog.temp",
+    "/tmp/.ninnin-out.mp4.passlog.cutree",
     "/tmp/.ninnin-out.mp4.passlog.cutree.temp",
+  ]);
+});
+
+test("svtav1 twopass", () => {
+  deepEqual(formatByName.svtav1.getPass1Flags("/tmp/out.mp4"), [
+    "--ovcopts-add=svtav1-params=tune=0:pass=1:stats=/tmp/.ninnin-out.mp4.passlog",
+  ]);
+  deepEqual(formatByName.svtav1.getPass2Flags("/tmp/out.mp4"), [
+    "--ovcopts-add=svtav1-params=tune=0:pass=2:stats=/tmp/.ninnin-out.mp4.passlog",
+  ]);
+  deepEqual(formatByName.svtav1.getPassFilePaths("/tmp/out.mp4"), [
+    "/tmp/.ninnin-out.mp4.passlog",
   ]);
 });
 
@@ -219,7 +228,6 @@ test("buildCommand svtav1/opus", () => {
     "--end=0:00:03.042",
     "--ovc=libsvtav1",
     "--ovcopts-add=preset=10",
-    "--ovcopts-add=svtav1-params=tune=0",
     "--ovcopts-add=crf=30",
     "--oac=libopus",
     "--oacopts-add=b=192k",
@@ -227,6 +235,7 @@ test("buildCommand svtav1/opus", () => {
     "--aid=1",
     "--sid=no",
     "--oset-metadata=title=%9%비디오",
+    "--ovcopts-add=svtav1-params=tune=0",
     "--ofopts-add=movflags=+faststart",
     "--o=/home/user/Downloads/비디오 [00.01-00.03].mp4",
   ]);
