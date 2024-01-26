@@ -160,7 +160,6 @@ export default class MainPage extends Page {
       // emit_event("encode-finished", "success");
     } catch (err) {
       // emit_event("encode-finished", "fail");
-      mp.msg.error(err);
       this.onEncodeEnded(err);
       return;
     }

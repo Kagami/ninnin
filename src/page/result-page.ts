@@ -65,7 +65,7 @@ export default class ResultPage extends Page {
       name: "subprocess",
       args: ["mpv", "--no-terminal", "--loop-file=inf", this.outPath],
       playback_only: false,
-    } as MP.Cmd.SubprocessArgs);
+    } satisfies MP.Cmd.SubprocessArgs);
   }
 
   private async calcVMAF() {

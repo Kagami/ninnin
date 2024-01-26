@@ -46,17 +46,19 @@ export class MPVEncode {
           args: this.args,
           playback_only: false,
           env: this.getEnv(),
-        } as MP.Cmd.SubprocessArgs,
-        (success, result, error) => {
+        } satisfies MP.Cmd.SubprocessArgs,
+        (success, res: MP.Cmd.SubprocessResult, error) => {
           // FIXME: cleanup partial file on error?
           // FIXME: cleanup log on player quit?
           remove_file(this.logPath);
           if (!success) return reject(new Error(error));
-          const res = result as MP.Cmd.SubprocessResult;
           if (res.status !== 0) {
             const msg = res.killed_by_us
               ? CANCEL_MSG
               : `${res.error_string} (code ${res.status})`;
+            if (!res.killed_by_us) {
+              mp.msg.error(JSON.stringify(res));
+            }
             return reject(new Error(msg));
           }
           resolve();

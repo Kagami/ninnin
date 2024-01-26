@@ -20,7 +20,7 @@ export function remove_file(path: string, { silentErrors = false } = {}): void {
     args,
     playback_only: false,
     capture_stderr: silentErrors,
-  } as MP.Cmd.SubprocessArgs);
+  } satisfies MP.Cmd.SubprocessArgs);
 }
 
 export function mkdirp(dir: string): void {
@@ -32,7 +32,7 @@ export function mkdirp(dir: string): void {
     name: "subprocess",
     args,
     playback_only: false,
-  } as MP.Cmd.SubprocessArgs);
+  } satisfies MP.Cmd.SubprocessArgs);
 }
 
 export function nproc(): number {
@@ -57,7 +57,7 @@ export function nproc(): number {
       args,
       playback_only: false,
       capture_stdout: true,
-    } as MP.Cmd.SubprocessArgs) as MP.Cmd.SubprocessResult;
+    } satisfies MP.Cmd.SubprocessArgs) as MP.Cmd.SubprocessResult;
     cores = ret.stdout!;
   }
   numCores = +cores || 8; // assume 8 cores if can't detect
