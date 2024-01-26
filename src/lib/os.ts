@@ -89,6 +89,17 @@ export function getShellArgs(args: string[]): string[] {
     : ["sh", "-c", escapeArgs(args)];
 }
 
+export function getHelperPath(outPath: string, ext: string): string {
+  // Best place to keep temporary files is near the output video, but hidden.
+  // NOTE: this way we can encode 1 video at a time inside one mpv instance.
+  // Maybe add counter if more is needed. If we use name of the file for helper
+  // files (e.g. passlogs) that would require complicated escaping.
+  const dir = mp.utils.split_path(outPath)[0];
+  const pid = mp.get_property("pid");
+  const fname = `.ninnin-${pid}.${ext}`;
+  return mp.utils.join_path(dir, fname);
+}
+
 // For testing
 export function testingResetPlatform() {
   platform = undefined;

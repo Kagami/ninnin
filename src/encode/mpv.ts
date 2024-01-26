@@ -1,7 +1,12 @@
 import type { MP } from "mpv.d.ts";
 
 import type { Stats } from "./script";
-import { escapeArgs, getShellArgs, remove_file } from "../lib/os";
+import {
+  escapeArgs,
+  getHelperPath,
+  getShellArgs,
+  remove_file,
+} from "../lib/os";
 
 const CANCEL_MSG = "ninnin-cancel";
 
@@ -23,9 +28,7 @@ export class MPVEncode {
     args.push("--script=" + scriptPath);
     // log for communication with main script
     // TODO: some better way of IPC?
-    const [dir, fname] = mp.utils.split_path(outPath);
-    const logName = `.ninnin-${fname}.log`;
-    this.logPath = mp.utils.join_path(dir, logName);
+    this.logPath = getHelperPath(outPath, "log");
     args.push("--script-opts=ninnin-encoding=" + this.logPath);
 
     // piping needed, so run via the system shell

@@ -119,45 +119,45 @@ test("getMetadataTitle", () => {
 test("x264 twopass", () => {
   deepEqual(formatByName.x264.getPass1Flags("/tmp/out.mp4"), [
     "--ovcopts-add=flags=+pass1",
-    "--ovcopts-add=stats=/tmp/.ninnin-out.mp4.passlog",
+    "--ovcopts-add=stats=/tmp/.ninnin-123.passlog",
   ]);
   deepEqual(formatByName.x264.getPass2Flags("/tmp/out.mp4"), [
     "--ovcopts-add=flags=+pass2",
-    "--ovcopts-add=stats=/tmp/.ninnin-out.mp4.passlog",
+    "--ovcopts-add=stats=/tmp/.ninnin-123.passlog",
   ]);
   deepEqual(formatByName.x264.getPassFilePaths("/tmp/out.mp4"), [
     "/tmp/out.mp4-video-pass1.log",
-    "/tmp/.ninnin-out.mp4.passlog",
-    "/tmp/.ninnin-out.mp4.passlog.temp",
-    "/tmp/.ninnin-out.mp4.passlog.mbtree",
-    "/tmp/.ninnin-out.mp4.passlog.mbtree.temp",
+    "/tmp/.ninnin-123.passlog",
+    "/tmp/.ninnin-123.passlog.temp",
+    "/tmp/.ninnin-123.passlog.mbtree",
+    "/tmp/.ninnin-123.passlog.mbtree.temp",
   ]);
 });
 
 test("x265 twopass", () => {
   deepEqual(formatByName.x265.getPass1Flags("/tmp/out.mp4"), [
-    "--ovcopts-add=x265-params=log-level=warning:pass=1:stats=/tmp/.ninnin-out.mp4.passlog",
+    "--ovcopts-add=x265-params=log-level=warning:pass=1:stats=/tmp/.ninnin-123.passlog",
   ]);
   deepEqual(formatByName.x265.getPass2Flags("/tmp/out.mp4"), [
-    "--ovcopts-add=x265-params=log-level=warning:pass=2:stats=/tmp/.ninnin-out.mp4.passlog",
+    "--ovcopts-add=x265-params=log-level=warning:pass=2:stats=/tmp/.ninnin-123.passlog",
   ]);
   deepEqual(formatByName.x265.getPassFilePaths("/tmp/out.mp4"), [
-    "/tmp/.ninnin-out.mp4.passlog",
-    "/tmp/.ninnin-out.mp4.passlog.temp",
-    "/tmp/.ninnin-out.mp4.passlog.cutree",
-    "/tmp/.ninnin-out.mp4.passlog.cutree.temp",
+    "/tmp/.ninnin-123.passlog",
+    "/tmp/.ninnin-123.passlog.temp",
+    "/tmp/.ninnin-123.passlog.cutree",
+    "/tmp/.ninnin-123.passlog.cutree.temp",
   ]);
 });
 
 test("svtav1 twopass", () => {
   deepEqual(formatByName.svtav1.getPass1Flags("/tmp/out.mp4"), [
-    "--ovcopts-add=svtav1-params=tune=0:pass=1:stats=/tmp/.ninnin-out.mp4.passlog",
+    "--ovcopts-add=svtav1-params=tune=0:pass=1:stats=/tmp/.ninnin-123.passlog",
   ]);
   deepEqual(formatByName.svtav1.getPass2Flags("/tmp/out.mp4"), [
-    "--ovcopts-add=svtav1-params=tune=0:pass=2:stats=/tmp/.ninnin-out.mp4.passlog",
+    "--ovcopts-add=svtav1-params=tune=0:pass=2:stats=/tmp/.ninnin-123.passlog",
   ]);
   deepEqual(formatByName.svtav1.getPassFilePaths("/tmp/out.mp4"), [
-    "/tmp/.ninnin-out.mp4.passlog",
+    "/tmp/.ninnin-123.passlog",
   ]);
 });
 
@@ -266,7 +266,7 @@ test("buildCommand VMAF", () => {
     "/home/user/Downloads/비디오 [00.01-00.03].mp4",
     "--msg-level=all=warn",
     "--external-file=-",
-    "--lavfi-complex=[vid1][vid2]libvmaf=n_threads=3:log_path='/home/user/Downloads/.ninnin-비디오 [00.01-00.03].mp4.json':log_fmt=json[vo]",
+    "--lavfi-complex=[vid1][vid2]libvmaf=n_threads=3:log_path='/home/user/Downloads/.ninnin-123.json':log_fmt=json[vo]",
     "--of=null",
     "--o=-",
   ]);
@@ -279,7 +279,7 @@ test("MPVEncode", () => {
   deepEqual(mpv.args.slice(-3), [
     "--o=/home/user/Downloads/비디오 [00.01-00.03].mp4",
     "--script=/home/user/.config/mpv/scripts/ninnin.js",
-    "--script-opts=ninnin-encoding=/home/user/Downloads/.ninnin-비디오 [00.01-00.03].mp4.log",
+    "--script-opts=ninnin-encoding=/home/user/Downloads/.ninnin-123.log",
   ]);
   const cmd2 = getVmafCmd();
   const mpv2 = new MPVEncode(cmd2.pipeArgs, cmd2.args, cmd2.outPath);
@@ -288,8 +288,8 @@ test("MPVEncode", () => {
     "-c",
     "mpv /home/user/video.mp4 --msg-level=all=warn --start=0:00:01.417 --end=0:00:03.042 --ovc=rawvideo --vid=1 --aid=no --sid=no --of=nut --o=- " +
       "| mpv '/home/user/Downloads/비디오 [00.01-00.03].mp4' --msg-level=all=warn --external-file=-" +
-      " '--lavfi-complex=[vid1][vid2]libvmaf=n_threads=3:log_path='\\''/home/user/Downloads/.ninnin-비디오 [00.01-00.03].mp4.json'\\'':log_fmt=json[vo]' --of=null --o=-" +
-      " --script=/home/user/.config/mpv/scripts/ninnin.js '--script-opts=ninnin-encoding=/home/user/Downloads/.ninnin-비디오 [00.01-00.03].mp4.log'",
+      " '--lavfi-complex=[vid1][vid2]libvmaf=n_threads=3:log_path='\\''/home/user/Downloads/.ninnin-123.json'\\'':log_fmt=json[vo]' --of=null --o=-" +
+      " --script=/home/user/.config/mpv/scripts/ninnin.js --script-opts=ninnin-encoding=/home/user/Downloads/.ninnin-123.log",
   ]);
 });
 

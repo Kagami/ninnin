@@ -1,5 +1,6 @@
 import { getCaps } from "../caps";
 import { ObjectFromEntries } from "../lib/helpers";
+import { getHelperPath } from "../lib/os";
 import options from "../options";
 
 // A basic format class, which specifies some fields to be set by child classes.
@@ -56,10 +57,8 @@ export class Format {
   }
 
   // Two pass routines
-  protected getPassLogPath(outPath: string) {
-    const [dir, fname] = mp.utils.split_path(outPath);
-    const logName = `.ninnin-${fname}.passlog`;
-    return mp.utils.join_path(dir, logName);
+  protected getPassLogPath(outPath: string): string {
+    return getHelperPath(outPath, "passlog");
   }
   /** Flags for single pass mode */
   getPass0Flags(_outPath: string): string[] {

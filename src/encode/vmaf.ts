@@ -1,6 +1,6 @@
 /** Build command for calculating VMAF. */
 
-import { nproc } from "../lib/os";
+import { getHelperPath, nproc } from "../lib/os";
 import { type Region } from "../video-to-screen";
 import { type Cmd, buildCommand, getOutPath } from "./cmd";
 import { Format } from "./formats";
@@ -20,12 +20,6 @@ class RawPipe extends Format {
 }
 
 const rawPipe = new RawPipe();
-
-function getVmafLogPath(outPath: string) {
-  const [dir, fname] = mp.utils.split_path(outPath);
-  const logName = `.ninnin-${fname}.json`;
-  return mp.utils.join_path(dir, logName);
-}
 
 /**
  * Escape FFmpeg's filter argument.
@@ -52,7 +46,7 @@ export function buildVmafCommand(
   if (cmd.pass1Args) throw new Error("VMAF calc always single pass");
   cmd.outPath = getOutPath(format, origStartTime, origEndTime);
   cmd.pipeArgs = cmd.args;
-  cmd.vmafLogPath = getVmafLogPath(cmd.outPath);
+  cmd.vmafLogPath = getHelperPath(cmd.outPath, "json");
   const logPath = escapeFilterArg(cmd.vmafLogPath);
   cmd.args = [
     "mpv",

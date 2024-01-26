@@ -57,6 +57,8 @@ const mp = {
   },
   get_property(prop) {
     switch (prop) {
+      case "pid":
+        return "123";
       case "filename":
         return currentFile.filename;
       case "filename/no-ext":
