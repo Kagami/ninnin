@@ -119,11 +119,11 @@ test("getMetadataTitle", () => {
 test("x264 twopass", () => {
   deepEqual(formatByName.x264.getPass1Flags("/tmp/out.mp4"), [
     "--ovcopts-add=flags=+pass1",
-    "--ovcopts-add=stats=/tmp/.ninnin-123.passlog",
+    "--ovcopts-add=stats=%24%/tmp/.ninnin-123.passlog",
   ]);
   deepEqual(formatByName.x264.getPass2Flags("/tmp/out.mp4"), [
     "--ovcopts-add=flags=+pass2",
-    "--ovcopts-add=stats=/tmp/.ninnin-123.passlog",
+    "--ovcopts-add=stats=%24%/tmp/.ninnin-123.passlog",
   ]);
   deepEqual(formatByName.x264.getPassFilePaths("/tmp/out.mp4"), [
     "/tmp/out.mp4-video-pass1.log",
@@ -136,10 +136,10 @@ test("x264 twopass", () => {
 
 test("x265 twopass", () => {
   deepEqual(formatByName.x265.getPass1Flags("/tmp/out.mp4"), [
-    "--ovcopts-add=x265-params=log-level=warning:pass=1:stats=/tmp/.ninnin-123.passlog",
+    "--ovcopts-add=x265-params=%57%log-level=warning:pass=1:stats='/tmp/.ninnin-123.passlog'",
   ]);
   deepEqual(formatByName.x265.getPass2Flags("/tmp/out.mp4"), [
-    "--ovcopts-add=x265-params=log-level=warning:pass=2:stats=/tmp/.ninnin-123.passlog",
+    "--ovcopts-add=x265-params=%57%log-level=warning:pass=2:stats='/tmp/.ninnin-123.passlog'",
   ]);
   deepEqual(formatByName.x265.getPassFilePaths("/tmp/out.mp4"), [
     "/tmp/.ninnin-123.passlog",
@@ -199,7 +199,7 @@ test("buildCommand x265/aac_at", () => {
     "--aid=1",
     "--sid=no",
     "--oset-metadata=title=%9%비디오",
-    "--ovcopts-add=x265-params=log-level=warning",
+    "--ovcopts-add=x265-params=%17%log-level=warning",
     "--ofopts-add=movflags=+faststart",
     "--o=/home/user/Downloads/비디오 [00.01-00.03].mp4",
   ]);
@@ -223,13 +223,13 @@ test("buildCommand svtav1/opus", () => {
     "--aid=1",
     "--sid=no",
     "--oset-metadata=title=%9%비디오",
-    "--ovcopts-add=svtav1-params=tune=0",
+    "--ovcopts-add=svtav1-params=%6%tune=0",
     "--ofopts-add=movflags=+faststart",
     "--o=/home/user/Downloads/비디오 [00.01-00.03].mp4",
   ]);
   options.svtav1_film_grain = 8;
   deepEqual(
-    getArgs().includes("--ovcopts-add=svtav1-params=tune=0:film-grain=8"),
+    getArgs().includes("--ovcopts-add=svtav1-params=%19%tune=0:film-grain=8"),
     true
   );
 });

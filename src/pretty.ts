@@ -59,7 +59,8 @@ export function formatFilename(
   // Linux: /
   fname = fname.replace(/[<>:"\/\\|?*]/g, "");
 
-  // Normally ~255 but keep space for ".ninnin" prefixes etc.
+  // Normally ~255 but keep space prefix/extension/etc.
+  // FIXME: what to do with MAX_PATH=260 on Windows?
   // FIXME: what to do with too long titles (we will truncate timestamps)?
   const MAX_NAME_LEN = 200;
   fname = fname.slice(0, MAX_NAME_LEN);

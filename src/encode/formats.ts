@@ -2,6 +2,7 @@ import { getCaps } from "../caps";
 import { ObjectFromEntries } from "../lib/helpers";
 import { getHelperPath } from "../lib/os";
 import options from "../options";
+import { ffParamArg, mpvSubOpt } from "../utils";
 
 // A basic format class, which specifies some fields to be set by child classes.
 export class Format {
@@ -110,13 +111,13 @@ class X264 extends Format {
     return [
       // FIXME: should we use -x264-params instead?
       "--ovcopts-add=flags=+pass1",
-      `--ovcopts-add=stats=${this.getPassLogPath(outPath)}`,
+      "--ovcopts-add=stats=" + mpvSubOpt(this.getPassLogPath(outPath)),
     ];
   }
   getPass2Flags(outPath: string) {
     return [
       "--ovcopts-add=flags=+pass2",
-      `--ovcopts-add=stats=${this.getPassLogPath(outPath)}`,
+      "--ovcopts-add=stats=" + mpvSubOpt(this.getPassLogPath(outPath)),
     ];
   }
   getPassFilePaths(outPath: string) {
@@ -159,7 +160,7 @@ class X265 extends Format {
 
   private mergeX265Params(...custom: string[]) {
     const params = ["log-level=warning"].concat(custom);
-    return ["--ovcopts-add=x265-params=" + params.join(":")];
+    return ["--ovcopts-add=x265-params=" + mpvSubOpt(params.join(":"))];
   }
 
   getPass0Flags(_outPath: string) {
@@ -168,13 +169,13 @@ class X265 extends Format {
   getPass1Flags(outPath: string) {
     return this.mergeX265Params(
       "pass=1",
-      `stats=${this.getPassLogPath(outPath)}`
+      "stats=" + ffParamArg(this.getPassLogPath(outPath))
     );
   }
   getPass2Flags(outPath: string) {
     return this.mergeX265Params(
       "pass=2",
-      `stats=${this.getPassLogPath(outPath)}`
+      "stats=" + ffParamArg(this.getPassLogPath(outPath))
     );
   }
   getPassFilePaths(outPath: string) {
@@ -216,7 +217,7 @@ class SVTAV1 extends Format {
       params.push(`film-grain=${options.svtav1_film_grain}`);
     }
     params.push(...custom);
-    return ["--ovcopts-add=svtav1-params=" + params.join(":")];
+    return ["--ovcopts-add=svtav1-params=" + mpvSubOpt(params.join(":"))];
   }
 
   getPass0Flags(_outPath: string) {

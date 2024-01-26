@@ -5,7 +5,7 @@ import type { MP } from "mpv.d.ts";
 import type { Format } from "./formats";
 import type { Region } from "../video-to-screen";
 import options from "../options";
-import { byteLength } from "../utils";
+import { mpvSubOpt } from "../utils";
 import { ObjectEntries } from "../lib/helpers";
 import { formatFilename, showTime, titleURL } from "../pretty";
 
@@ -236,7 +236,7 @@ export function getMetadataTitle() {
 function get_metadata_flags() {
   const title = getMetadataTitle();
   // FIXME: byteLength correct on Windows? (UTF-8 vs UTF-16)
-  return title ? [`--oset-metadata=title=%${byteLength(title)}%${title}`] : [];
+  return title ? ["--oset-metadata=title=" + mpvSubOpt(title)] : [];
 }
 
 function apply_current_filters(filters: string[]) {

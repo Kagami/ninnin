@@ -42,3 +42,32 @@ export function byteLength(s: string) {
   const ascii = encoded.replace(/%../g, "");
   return ascii.length + Math.floor((encoded.length - ascii.length) / 3);
 }
+
+/**
+ * Escape mpv's suboption.
+ * https://mpv.io/manual/master/#escaping-spaces-and-other-special-characters
+ */
+export function mpvSubOpt(s: string) {
+  return `%${byteLength(s)}%${s}`;
+}
+
+/**
+ * Escape FFmpeg's param argument.
+ * https://ffmpeg.org/ffmpeg-utils.html#Quoting-and-escaping
+ */
+export function ffParamArg(arg: string): string {
+  arg = arg.replace(/\\/g, "\\\\"); // \ -> \\
+  arg = arg.replace(/'/g, "'\\''"); // ' -> '\''
+  return `'${arg}'`;
+}
+
+/**
+ * Escape FFmpeg's filter argument.
+ * https://ffmpeg.org/ffmpeg-filters.html#Notes-on-filtergraph-escaping
+ */
+export function ffFilterArg(arg: string): string {
+  arg = arg.replace(/\\/g, "\\\\"); // \ -> \\
+  arg = arg.replace(/'/g, "'\\\\\\''"); // ' -> '\\\''
+  arg = arg.replace(/:/g, "\\:"); // : -> \:
+  return `'${arg}'`;
+}
