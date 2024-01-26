@@ -7,6 +7,7 @@ import {
   getShellArgs,
   remove_file,
 } from "../lib/os";
+import { byteLength } from "../utils";
 
 const CANCEL_MSG = "ninnin-cancel";
 
@@ -29,7 +30,8 @@ export class MPVEncode {
     // log for communication with main script
     // TODO: some better way of IPC?
     this.logPath = getHelperPath(outPath, "log");
-    args.push("--script-opts=ninnin-encoding=" + this.logPath);
+    const quoted = `%${byteLength(this.logPath)}%${this.logPath}`;
+    args.push("--script-opts=ninnin-encoding=" + quoted);
 
     // piping needed, so run via the system shell
     if (pipeArgs) {

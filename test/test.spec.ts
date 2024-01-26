@@ -267,7 +267,7 @@ test("MPVEncode", () => {
   deepEqual(mpv.args.slice(-3), [
     "--o=/home/user/Downloads/비디오 [00.01-00.03].mp4",
     "--script=/home/user/.config/mpv/scripts/ninnin.js",
-    "--script-opts=ninnin-encoding=/home/user/Downloads/.ninnin-123.log",
+    "--script-opts=ninnin-encoding=%36%/home/user/Downloads/.ninnin-123.log",
   ]);
   const cmd2 = getVmafCmd();
   const mpv2 = new MPVEncode(cmd2.pipeArgs, cmd2.args, cmd2.outPath);
@@ -277,7 +277,7 @@ test("MPVEncode", () => {
     "mpv /home/user/video.mp4 --msg-level=all=warn --start=0:00:01.417 --end=0:00:03.042 --ovc=rawvideo --vid=1 --aid=no --sid=no --of=nut --o=- " +
       "| mpv '/home/user/Downloads/비디오 [00.01-00.03].mp4' --msg-level=all=warn --external-file=-" +
       " '--lavfi-complex=[vid1][vid2]libvmaf=n_threads=3:log_path='\\''/home/user/Downloads/.ninnin-123.json'\\'':log_fmt=json[vo]' --of=null --o=-" +
-      " --script=/home/user/.config/mpv/scripts/ninnin.js --script-opts=ninnin-encoding=/home/user/Downloads/.ninnin-123.log",
+      " --script=/home/user/.config/mpv/scripts/ninnin.js '--script-opts=ninnin-encoding=%36%/home/user/Downloads/.ninnin-123.log'",
   ]);
 });
 
