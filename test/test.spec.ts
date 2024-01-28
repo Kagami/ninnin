@@ -3,12 +3,11 @@ import { deepEqual } from "node:assert/strict";
 
 import options, { serializeOptions } from "../src/options";
 import { byteLength } from "../src/utils";
-import { formatByName, getCurrentFormat } from "../src/encode/formats";
-import { buildCommand, getMetadataTitle } from "../src/encode/cmd";
-import { buildVmafCommand } from "../src/encode/vmaf";
+import { formatByName, getCurrentFormat } from "../src/cmd/formats";
+import { buildCommand, buildVmafCommand } from "../src/cmd/cmd";
 import { MPVEncode } from "../src/encode/mpv";
 import { Region } from "../src/video-to-screen";
-import { formatFilename, titleURL } from "../src/pretty";
+import { formatFilename, getMetadataTitle, titleURL } from "../src/cmd/pretty";
 
 import {
   setMock,

@@ -1,5 +1,5 @@
 import options, { type Options, saveOptions, resetOptions } from "../options";
-import { formats } from "../encode/formats";
+import { formats } from "../cmd/formats";
 import { ArrayEntries, ObjectEntries, ObjectFromEntries } from "../lib/helpers";
 import {
   type EncOption,

@@ -1,6 +1,7 @@
-import { StringStartsWith } from "./lib/helpers";
-import type { Format } from "./encode/formats";
-import options from "./options";
+import options from "../options";
+import { type Format } from "./formats";
+import { StringStartsWith } from "../lib/helpers";
+import { isStream } from "../utils";
 
 function pad2(n: number) {
   let s = Math.floor(n) + "";
@@ -67,6 +68,34 @@ export function formatFilename(
   return `${fname}.${format.outputExtension}`;
 }
 
+export function getOutPath(format: Format, startTime: number, endTime: number) {
+  if (format.outputExtension === "-") return "-"; // pipe
+
+  let dir = "";
+  if (options.output_directory) {
+    dir = mp.utils.get_user_path(options.output_directory);
+  } else {
+    if (isStream()) {
+      // don't have file path for streams, so saving to HOME
+      dir = mp.utils.get_user_path("~/");
+    } else {
+      // save to the directory of the playing video it dir wasn't specified
+      const path = mp.get_property("path")!;
+      dir = mp.utils.split_path(path)[0];
+    }
+  }
+
+  const formatted_filename = formatFilename(format, startTime, endTime);
+  return mp.utils.join_path(dir, formatted_filename);
+}
+
+// FIXME: remove once fixed upstream:
+// https://github.com/mpv-player/mpv/issues/13358
+export function stripYtTime(s: string): string {
+  if (!/^https?:.*youtu/.test(s)) return s;
+  return s.replace(/([?&])t=[.\d]+s?(&|$)/, (_, p1, p2) => (p2 ? p1 : ""));
+}
+
 function matchYtID(url: string): string | undefined {
   // TODO: is that regexp good enough?
   const m = url.match(/youtu.*([?&]v=|\/)([0-9A-Za-z_-]{11})/);
@@ -95,4 +124,30 @@ export function titleURL(url?: string): string | undefined {
   }
 
   return url;
+}
+
+export function getMetadataTitle() {
+  const TITLE_STRIP = 100;
+  const ppos = mp.get_property_number("playlist-pos", 0);
+  let title = mp.get_property(`playlist/${ppos}/title`, "");
+  // FIXME: surrogate pairs, safe?
+  title = title.slice(0, TITLE_STRIP);
+
+  if (isStream()) {
+    // For remote files we append the URL.
+    let url = titleURL(mp.get_property("path"));
+    if (url) {
+      url = url.slice(0, TITLE_STRIP);
+      // could be 203 chars max here but should be fine
+      title = title ? `${title} (${url})` : url;
+    }
+  } else {
+    // For local files we fallback to filename.
+    if (!title) {
+      title = mp.get_property("filename/no-ext", "");
+      title = title.slice(0, TITLE_STRIP);
+    }
+  }
+
+  return title;
 }

@@ -19,6 +19,10 @@ export function calculate_scale_factor() {
   return height / baseResY;
 }
 
+export function isStream() {
+  return mp.get_property_bool("demuxer-via-network");
+}
+
 // https://stackoverflow.com/a/23329386
 /*export function byteLength(str: string) {
   // returns the byte length of an utf8 string

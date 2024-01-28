@@ -4,27 +4,28 @@ import { getHelperPath } from "../lib/os";
 import options from "../options";
 import { ffParamArg, mpvSubOpt } from "../utils";
 
-// A basic format class, which specifies some fields to be set by child classes.
+/** A basic format class, which specifies some fields to be set by child classes. */
 export class Format {
   protected displayName = "";
   videoCodec = "";
   audioCodec = "";
   outputExtension = "mp4";
   highBitDepthSupported = true;
-  metadataSupported = true;
   twoPassSupported = true;
 
   getDisplayName() {
     return this.displayName;
   }
 
-  // Filters that should be applied before the transformations we do (crop, scale)
-  // Should be a array of ffmpeg filters e.g. {"colormatrix=bt709", "sub"}.
+  /**
+   * Should be a array of ffmpeg filters e.g. {"colormatrix=bt709", "sub"}.
+   * Filters that should be applied before the transformations we do (crop, scale).
+   */
   getPreFilters(): string[] {
     return [];
   }
 
-  // Similar to getPreFilters, but after our transformations.
+  /** Similar to getPreFilters, but after our transformations. */
   getPostFilters() {
     // Quality should be a bit better with Main10 profile even on 8bit content.
     // FIXME: is that no-op in case of 10bit content?
@@ -40,6 +41,9 @@ export class Format {
   getVideoFlags() {
     return [`--ovc=${this.videoCodec}`];
   }
+  getVideoBitrateFlags(bitrate: number): string[] {
+    return [`--ovcopts-add=b=${bitrate}k`];
+  }
   getVideoQualityFlags(): string[] {
     return [];
   }
@@ -48,14 +52,20 @@ export class Format {
   getAudioFlags() {
     return [`--oac=${this.audioCodec}`];
   }
+  getAudioBitrateFlags(bitrate: number): string[] {
+    return [`--oacopts-add=b=${bitrate}k`];
+  }
 
   // Container-specific flags
+  getMetadataFlags(title: string) {
+    return options.write_metadata_title && title
+      ? ["--oset-metadata=title=" + mpvSubOpt(title)]
+      : [];
+  }
   getMuxerFlags() {
-    if (this.outputExtension === "mp4") {
-      return ["--ofopts-add=movflags=+faststart"];
-    } else {
-      return [];
-    }
+    return this.outputExtension === "mp4"
+      ? ["--ofopts-add=movflags=+faststart"]
+      : [];
   }
 
   // Two pass routines
@@ -151,7 +161,6 @@ class X265 extends Format {
 
   getAudioFlags() {
     if (getCaps().has_aac_at) {
-      // FIXME: TVBR vs CVBR?
       return ["--oac=aac_at", "--oacopts-add=aac_at_mode=cvbr"];
     } else {
       return ["--oac=aac"];
@@ -235,3 +244,34 @@ export const formatByName = ObjectFromEntries(formats);
 export function getCurrentFormat() {
   return formatByName[options.output_format];
 }
+
+/** Pipe uncompressed format to process later. */
+class RawPipe extends Format {
+  videoCodec = "rawvideo";
+  audioCodec = "pcm_s16le";
+  outputExtension = "-";
+  twoPassSupported = false;
+
+  getVideoBitrateFlags(_bitrate: number) {
+    return [];
+  }
+  getAudioBitrateFlags(_bitrate: number) {
+    return [];
+  }
+  getMetadataFlags(_title: string) {
+    return [];
+  }
+  getMuxerFlags() {
+    // XXX: in case of yuv4mpegpipe and matroska VMAF filter outputs broken
+    // score for some reason. Probably timestamp issues.
+    return ["--of=nut"];
+  }
+}
+
+/** Only raw video. */
+class RawVideoPipe extends RawPipe {
+  audioCodec = "";
+}
+
+export const rawPipe = new RawPipe();
+export const rawVideoPipe = new RawVideoPipe();

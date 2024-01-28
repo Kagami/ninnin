@@ -3,13 +3,12 @@ import Page from "./page";
 import CropPage from "./crop-page";
 import PreviewPage from "./preview-page";
 import EncodeOptionsPage from "./options-page";
-import { getMetadataTitle, getOutPath } from "../encode/cmd";
 import { calcVMAF, encode } from "../encode/encode";
 import { Region } from "../video-to-screen";
 import { message } from "../utils";
-import { showTime } from "../pretty";
+import { getMetadataTitle, getOutPath, showTime } from "../cmd/pretty";
 import ResultPage from "./result-page";
-import { getCurrentFormat } from "../encode/formats";
+import { getCurrentFormat } from "../cmd/formats";
 
 export default class MainPage extends Page {
   private startTime = -1;

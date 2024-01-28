@@ -1,12 +1,11 @@
 import type Ass from "../lib/ass";
 import { remove_file } from "../lib/os";
 import Page from "../page/page";
-import { type Format, getCurrentFormat } from "./formats";
+import { type Format, getCurrentFormat } from "../cmd/formats";
 import { type Region } from "../video-to-screen";
-import { type Cmd, buildCommand } from "./cmd";
-import { buildVmafCommand } from "./vmaf";
+import { type Cmd, buildCommand, buildVmafCommand } from "../cmd/cmd";
 import { MPVEncode } from "./mpv";
-import { showTime } from "../pretty";
+import { showTime } from "../cmd/pretty";
 
 // Not really a Page, but reusing its functions is pretty useful
 export default class EncodeWithProgress extends Page {
@@ -39,6 +38,7 @@ export default class EncodeWithProgress extends Page {
       timePos -= this.startTime;
     }
 
+    // FIXME: fix if speed != 1?
     let progress = Math.floor((timePos / this.duration) * 100);
     progress = Math.min(100, Math.max(0, progress));
 
