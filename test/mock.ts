@@ -69,6 +69,8 @@ const mp = {
       case "media-title":
       case "playlist/0/title":
         return "비디오";
+      case "sub-font-size":
+        return "55.000000";
       case "sub-ass-override":
         return "yes";
       case "sub-ass-style-overrides":

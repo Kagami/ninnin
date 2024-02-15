@@ -65,6 +65,7 @@ function append_property(out: string[], property_name: string, def = "") {
  */
 function get_playback_options() {
   const ret: string[] = [];
+  append_property(ret, "sub-font-size", "55.000000");
   append_property(ret, "sub-ass-override", "yes");
   append_property(ret, "sub-ass-style-overrides");
   append_property(ret, "sub-ass-vsfilter-aspect-compat", "yes");
