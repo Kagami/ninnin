@@ -223,8 +223,7 @@ test("buildCommand svtav1/opus", () => {
     "--sid=no",
     "--oset-metadata=title=%9%비디오",
     "--ovcopts-add=svtav1-params=%6%tune=0",
-    "--ofopts-add=movflags=+faststart",
-    "--o=/home/user/Downloads/비디오 [00.01-00.03].mp4",
+    "--o=/home/user/Downloads/비디오 [00.01-00.03].webm",
   ]);
   options.svtav1_film_grain = 8;
   deepEqual(
@@ -250,7 +249,7 @@ test("buildCommand VMAF", () => {
   ]);
   deepEqual(cmd.args, [
     "mpv",
-    "/home/user/Downloads/비디오 [00.01-00.03].mp4",
+    "/home/user/Downloads/비디오 [00.01-00.03].webm",
     "--msg-level=all=warn",
     "--external-file=-",
     "--lavfi-complex=[vid1][vid2]libvmaf=n_threads=3:log_path='/home/user/Downloads/.ninnin-123.json':log_fmt=json[vo]",
@@ -264,7 +263,7 @@ test("MPVEncode", () => {
   const cmd = getCmd();
   const mpv = new MPVEncode(undefined, cmd.args, cmd.outPath);
   deepEqual(mpv.args.slice(-3), [
-    "--o=/home/user/Downloads/비디오 [00.01-00.03].mp4",
+    "--o=/home/user/Downloads/비디오 [00.01-00.03].webm",
     "--script=/home/user/.config/mpv/scripts/ninnin.js",
     "--script-opts=ninnin-encoding=%36%/home/user/Downloads/.ninnin-123.log",
   ]);
@@ -274,7 +273,7 @@ test("MPVEncode", () => {
     "sh",
     "-c",
     "mpv /home/user/video.mp4 --msg-level=all=warn --start=0:00:01.417 --end=0:00:03.042 --ovc=rawvideo --vid=1 --aid=no --sid=no --of=nut --o=- " +
-      "| mpv '/home/user/Downloads/비디오 [00.01-00.03].mp4' --msg-level=all=warn --external-file=-" +
+      "| mpv '/home/user/Downloads/비디오 [00.01-00.03].webm' --msg-level=all=warn --external-file=-" +
       " '--lavfi-complex=[vid1][vid2]libvmaf=n_threads=3:log_path='\\''/home/user/Downloads/.ninnin-123.json'\\'':log_fmt=json[vo]' --of=null --o=-" +
       " --script=/home/user/.config/mpv/scripts/ninnin.js '--script-opts=ninnin-encoding=%36%/home/user/Downloads/.ninnin-123.log'",
   ]);

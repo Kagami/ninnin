@@ -200,6 +200,7 @@ class SVTAV1 extends Format {
   displayName = "svtav1/opus";
   videoCodec = "libsvtav1";
   audioCodec = "libopus";
+  outputExtension = "webm";
   twoPassSupported = false; // https://gitlab.com/AOMediaCodec/SVT-AV1/-/issues/1867
 
   getVideoFlags() {
