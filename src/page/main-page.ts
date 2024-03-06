@@ -22,6 +22,8 @@ export default class MainPage extends Page {
       c: this.crop.bind(this),
       "1": this.setStartTime.bind(this),
       "2": this.setEndTime.bind(this),
+      "!": this.jumpToStartTime.bind(this),
+      "@": this.jumpToEndTime.bind(this),
       o: this.gotoOptions.bind(this),
       p: this.preview.bind(this),
       e: this.encode.bind(this),
@@ -46,6 +48,14 @@ export default class MainPage extends Page {
       this.clear();
       this.draw();
     }
+  }
+
+  jumpToStartTime() {
+    mp.set_property_number("time-pos", this.startTime);
+  }
+
+  jumpToEndTime() {
+    mp.set_property_number("time-pos", this.endTime);
   }
 
   updateStartEnd() {
@@ -86,6 +96,8 @@ export default class MainPage extends Page {
       ass.append_nl();
       ass.append_nl(`${ass.bold('1:')} set start time (current ${showTime(this.startTime)})`);
       ass.append_nl(`${ass.bold('2:')} set end time (current ${showTime(this.endTime)})`);
+      ass.append_nl(`${ass.bold('!:')} jump to start time`);
+      ass.append_nl(`${ass.bold('@:')} jump to end time`);
       ass.append_nl(`${ass.bold('o:')} options`);
       ass.append_nl(`${ass.bold('c:')} crop`);
       ass.append_nl(`${ass.bold('p:')} preview`);
